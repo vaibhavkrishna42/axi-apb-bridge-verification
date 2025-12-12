@@ -8,4 +8,4 @@
 ### To run Cadence JasperGold
     Run the executable with the command
         ./run_jg.sh
-    Executes the FPV_axiapb.tcl file which launches JasperGold
+    Runs the FPV_axiapb.tcl file which launches JasperGold

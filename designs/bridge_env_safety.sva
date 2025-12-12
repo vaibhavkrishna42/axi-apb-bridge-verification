@@ -1,0 +1,85 @@
+// Environment assumptions and safety properties for the AXI-APB bridge
+module bridge_env_safety_checker (
+  input clk, res_n,
+  input [3:0] arlen, awlen,
+  input arvalid, awvalid, arready, awready,
+  input [4:0] araddr, awaddr,
+  input rready, bready,
+  input PSEL1, PSEL2, PSEL3, PSEL4, PREADY, PENABLE, PWRITE,
+  input [15:0] PWDATA, PRDATA,
+  input [3:0] current_state, next_state,
+  input rvalid, rlast, bvalid,
+  input [3:0] lenM, lenS
+);
+  import bridge_props_pkg::*;
+
+  // Basic constraints on AXI lengths/burst (bounded)
+  assume property (@(posedge clk) disable iff (!res_n) (arlen <= 4'd15));
+  assume property (@(posedge clk) disable iff (!res_n) (awlen <= 4'd15));
+
+  // Do not assert AR and AW acceptance simultaneously at the same cycle
+  assume property (@(posedge clk) disable iff (!res_n)
+    !(arvalid && awvalid)
+  );
+
+  // Assume AXI master will eventually accept read/write responses
+  assume property (@(posedge clk) disable iff (!res_n)
+    (arvalid && arready) |=> ##[0:100] rready
+  );
+
+  assume property (@(posedge clk) disable iff (!res_n)
+    (awvalid && awready) |=> ##[0:100] bready
+  );
+
+  // APB peripheral will assert PREADY within 20 cycles of the APB access setup
+  assume property (@(posedge clk) disable iff (!res_n)
+    (PSEL1 || PSEL2 || PSEL3 || PSEL4) |=> ##[0:20] PREADY
+  );
+
+  // 1) No simultaneous read and write accepted at same address
+  property p_no_simul_rw_same_addr;
+    @(posedge clk) disable iff (!res_n)
+      not ( (arvalid && arready) && (awvalid && awready) && (araddr == awaddr) );
+  endproperty
+  a_no_simul_rw_same_addr: assert property (p_no_simul_rw_same_addr);
+
+  // 2) PENABLE must not be asserted without a corresponding PSELx
+  property p_pen_without_psel;
+    @(posedge clk) disable iff (!res_n)
+      !(PENABLE && !(PSEL1 || PSEL2 || PSEL3 || PSEL4));
+  endproperty
+  a_pen_without_psel: assert property (p_pen_without_psel);
+
+  // 3) PWRITE and PWDATA should remain stable once APB write phase begins
+  property p_pwrite_pwd_stable;
+    @(posedge clk) disable iff (!res_n)
+      ( (PSEL1 || PSEL2 || PSEL3 || PSEL4) && PWRITE ) |=>
+        ( (PWRITE && $stable(PWDATA)) throughout (!PREADY) );
+  endproperty
+  a_p_pwrite_pwd_stable: assert property (p_pwrite_pwd_stable);
+
+  // 4) PRDATA is only sampled when PREADY is asserted
+  property p_sample_prdata_only_on_pready;
+    @(posedge clk) disable iff (!res_n)
+      (current_state == SETUP_S) |=> PREADY;
+  endproperty
+  a_sample_prdata_only_on_pready: assert property (p_sample_prdata_only_on_pready);
+
+  // 5) No invalid FSM transitions
+  property p_fsm_valid_state;
+    @(posedge clk) disable iff (!res_n)
+      ( next_state == IDLE    ||
+        next_state == SETUP_M ||
+        next_state == SETUP_S ||
+        next_state == ACCESS_S||
+        next_state == PREACCESS_M||
+        next_state == ACCESS_M||
+        next_state == WSETUP_M||
+        next_state == WPREACCESS_M||
+        next_state == WACCESS_M||
+        next_state == WTERMINATE||
+        next_state == WSETUP_S||
+        next_state == WACCESS_S );
+  endproperty
+  a_fsm_valid_state: assert property (p_fsm_valid_state);
+endmodule

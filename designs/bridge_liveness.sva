@@ -1,0 +1,70 @@
+// Bounded liveness properties for the AXI-APB bridge
+module bridge_liveness_checker (
+  input clk, res_n,
+  input [3:0] arlen, awlen,
+  input arvalid, awvalid, arready, awready,
+  input [4:0] araddr, awaddr,
+  input rready, bready,
+  input PSEL1, PSEL2, PSEL3, PSEL4, PREADY, PENABLE, PWRITE,
+  input [15:0] PWDATA, PRDATA,
+  input [3:0] current_state, next_state,
+  input rvalid, rlast, bvalid,
+  input [3:0] lenM, lenS
+);
+  import bridge_props_pkg::*;
+
+  // L1: Every accepted AXI read eventually completes
+  property l_read_complete_bounded;
+    @(posedge clk) disable iff (!res_n)
+      (arvalid && arready) |=> ##[0:100] (rvalid && rready && rlast);
+  endproperty
+  a_l_read_complete_bounded: assert property (l_read_complete_bounded);
+
+  // L2: Every accepted AXI write address eventually sees a write response
+  property l_write_resp_bounded;
+    @(posedge clk) disable iff (!res_n)
+      (awvalid && awready) |=> ##[0:100] (bvalid && bready);
+  endproperty
+  a_l_write_resp_bounded: assert property (l_write_resp_bounded);
+
+  // L3: APB transfer completes when PSEL asserted
+  property l_apb_transfer_bounded;
+    @(posedge clk) disable iff (!res_n)
+      ((PSEL1 || PSEL2 || PSEL3 || PSEL4) && PENABLE) |=> ##[0:20] PREADY;
+  endproperty
+  a_l_apb_transfer_bounded: assert property (l_apb_transfer_bounded);
+
+  // L4: FSM eventually returns to IDLE after any transaction
+  property l_fsm_returns_idle;
+    @(posedge clk) disable iff (!res_n)
+      (current_state != IDLE) |=> ##[0:100] (current_state == IDLE);
+  endproperty
+  a_l_fsm_returns_idle: assert property (l_fsm_returns_idle);
+
+  // L5: Respond to requests from IDLE within 5 cycles
+  property l_ack_request_from_idle;
+    @(posedge clk) disable iff (!res_n)
+      (current_state == IDLE && arvalid) |=> ##[0:5] arready;
+  endproperty
+  a_l_ack_request_from_idle: assert property (l_ack_request_from_idle);
+
+  property l_ack_aw_from_idle;
+    @(posedge clk) disable iff (!res_n)
+      (current_state == IDLE && awvalid) |=> ##[0:5] awready;
+  endproperty
+  a_l_ack_aw_from_idle: assert property (l_ack_aw_from_idle);
+
+  // L6: Burst length counters eventually drain to zero
+  property l_burst_len_drains;
+    @(posedge clk) disable iff (!res_n)
+      ((arvalid && arready) || (awvalid && awready)) |=> ##[0:100] ((lenM == 0) && (lenS == 0));
+  endproperty
+  a_l_burst_len_drains: assert property (l_burst_len_drains);
+
+  // L7: Buffered read data is eventually transferred out
+  property l_buffered_read_drains;
+    @(posedge clk) disable iff (!res_n)
+      (current_state == ACCESS_M) |=> ##[0:100] (rvalid && rready);
+  endproperty
+  a_l_buffered_read_drains: assert property (l_buffered_read_drains);
+endmodule

@@ -1,60 +1,61 @@
-2025-12-05 17:47:13.109605 (3760718) main____ INFO    ----------------------------------------
-2025-12-05 17:47:13.109683 (3760718) main____ INFO    Jasper version info
-2025-12-05 17:47:13.109691 (3760718) main____ INFO      tool      : Jasper 2024.06
-2025-12-05 17:47:13.109699 (3760718) main____ INFO      version   : 2024.06p002 64 bits
-2025-12-05 17:47:13.109704 (3760718) main____ INFO      build date: 2024.09.02 16:28:38 UTC
-2025-12-05 17:47:13.109707 (3760718) main____ INFO    ----------------------------------------
-2025-12-05 17:47:13.109710 (3760718) main____ INFO    Runtime info:
-2025-12-05 17:47:13.109714 (3760718) main____ INFO      platform  : Linux 4.18.0-553.85.1.el8_10.x86_64 x86_64
-2025-12-05 17:47:13.109722 (3760718) main____ INFO      hostname  : cadpc03
-2025-12-05 17:47:13.109728 (3760718) main____ INFO      pid       : 3760718
-2025-12-05 17:47:13.110771 (3760718) main____ INFO      arguments : '-style' 'windows' '-fpv' 'FPV_axiapb.tcl'
-2025-12-05 17:47:13.110783 (3760718) main____ INFO      locale    : UTF-8
-2025-12-05 17:47:13.110787 (3760718) main____ INFO    ----------------------------------------
-2025-12-05 17:47:13.110789 (3760718) main____ INFO    System resource limits info:
-2025-12-05 17:47:13.110797 (3760718) main____ INFO      virtual memory: unlimited
-2025-12-05 17:47:13.110801 (3760718) main____ INFO      cpu time      : unlimited
-2025-12-05 17:47:13.110812 (3760718) main____ INFO      processes     : 255233
-2025-12-05 17:47:13.110823 (3760718) main____ INFO      stack size    : 8388608 B
-2025-12-05 17:47:13.110828 (3760718) main____ INFO      core file size: 0 B
-2025-12-05 17:47:13.110835 (3760718) main____ INFO      open files    : 1024
-2025-12-05 17:47:13.110839 (3760718) main____ INFO      file size     : unlimited
-2025-12-05 17:47:13.110842 (3760718) main____ INFO    ----------------------------------------
-2025-12-05 17:47:13.110844 (3760718) main____ INFO    Memory statistics:
-2025-12-05 17:47:13.110849 (3760718) main____ INFO      total physical memory  : 65401516 kB
-2025-12-05 17:47:13.110853 (3760718) main____ INFO      free physical memory   : 19159160 kB
-2025-12-05 17:47:13.110857 (3760718) main____ INFO      committed address space: 122176360 kB
-2025-12-05 17:47:13.110860 (3760718) main____ INFO    ----------------------------------------
-2025-12-05 17:47:13.111671 (3760718) main____ INFO    Important environment variables:
-2025-12-05 17:47:13.112598 (3760718) main____ INFO      CDS_LIC_FILE       : '5280@bioeelincad.ee.columbia.edu'
-2025-12-05 17:47:13.112615 (3760718) main____ INFO      DISPLAY            : 'localhost:11.0'
-2025-12-05 17:47:13.112622 (3760718) main____ INFO      JASPER_CPU_CHECK   : '1'
-2025-12-05 17:47:13.112627 (3760718) main____ INFO      JASPER_INSTALL_DIR : '/tools/cadence/jasper_2024.06p002'
-2025-12-05 17:47:13.112631 (3760718) main____ INFO      JASPER_KERNEL_CHECK: '1'
-2025-12-05 17:47:13.112636 (3760718) main____ INFO      JASPER_OS_CHECK    : '1'
-2025-12-05 17:47:13.112640 (3760718) main____ INFO      LANG               : 'en_US.UTF-8'
-2025-12-05 17:47:13.112644 (3760718) main____ INFO    ----------------------------------------
-2025-12-05 17:47:13.113342 (3760718) lic_core INFO    Initializing license system ...
-2025-12-05 17:47:13.119353 (3760718) lic_core INFO    ... license system initialized.
-2025-12-05 17:47:13.141214 (3760718) lic__man INFO    Claim 'main' for <ui>.
-2025-12-05 17:47:13.141288 (3760718) lic_core INFO    (1) checking out 'jasper_interactive' ...
-2025-12-05 17:47:13.158598 (3760718) lic_core INFO    ... (1) checkout succeeded
-2025-12-05 17:47:13.158658 (3760718) lic__man INFO    Claim 'fpv' for <ui>.
-2025-12-05 17:47:13.158676 (3760718) lic_core INFO    (2) checking out 'jasper_fpv' ...
-2025-12-05 17:47:13.164786 (3760718) lic_core INFO    ... (2) checkout failed (error: -5) ("FLEXnet ERROR(-5, 0, 0): No such feature exists.")
-2025-12-05 17:47:13.164836 (3760718) lic_core INFO    (3) checking out 'jasper_fao' ...
-2025-12-05 17:47:13.178641 (3760718) lic_core INFO    ... (3) checkout succeeded
-2025-12-05 17:47:13.179172 (3760718) main____ INFO    Tool inactivity delay is 480000 ms.
-2025-12-05 17:47:13.955671 (3760718) lic__man INFO    Claim 'fpv' for <ui>.
-2025-12-05 17:47:14.205312 (3760718) lic__man INFO    Unclaim 'fpv' for <ui>.
-2025-12-05 17:47:14.205375 (3760718) lic__man INFO    Claim 'fpv' for <ui>.
-2025-12-05 17:47:14.225030 (3760718) session_ INFO    Starting analysis session with session id 'session_0' (launcher: <local>) ...
-2025-12-05 17:47:14.227807 (3760718) session_ INFO    Analysis session with session id 'session_0' started (pid: 3760739)
-2025-12-05 17:47:17.164236 (3760718) session_ INFO    Analysis session 'session_0' connected to the console (host: 127.0.0.1:48534)
-2025-12-05 17:47:18.937733 (3760718) lic__man INFO    Unclaim everything for 'session_0'.
-2025-12-05 17:47:19.046649 (3760718) lic__man INFO    Claim 'fpv' for 'session_0'.
-2025-12-05 17:47:19.046698 (3760718) lic__man INFO    Claim 'fpv' for 'session_0/prove-0'.
-2025-12-05 17:47:24.629486 (3760718) lic__man INFO    Unclaim everything for 'session_0/prove-0'.
-2025-12-05 17:55:24.660631 (3760718) lic__man INFO    Entering idle state.
-2025-12-05 18:05:13.598623 (3760718) lic__man INFO    Leaving idle state.
-2025-12-05 18:13:16.660367 (3760718) lic__man INFO    Entering idle state.
+2025-12-05 18:46:27.242093 (3827835) main____ INFO    ----------------------------------------
+2025-12-05 18:46:27.242168 (3827835) main____ INFO    Jasper version info
+2025-12-05 18:46:27.242178 (3827835) main____ INFO      tool      : Jasper 2024.06
+2025-12-05 18:46:27.242186 (3827835) main____ INFO      version   : 2024.06p002 64 bits
+2025-12-05 18:46:27.242192 (3827835) main____ INFO      build date: 2024.09.02 16:28:38 UTC
+2025-12-05 18:46:27.242195 (3827835) main____ INFO    ----------------------------------------
+2025-12-05 18:46:27.242198 (3827835) main____ INFO    Runtime info:
+2025-12-05 18:46:27.242201 (3827835) main____ INFO      platform  : Linux 4.18.0-553.85.1.el8_10.x86_64 x86_64
+2025-12-05 18:46:27.242210 (3827835) main____ INFO      hostname  : cadpc03
+2025-12-05 18:46:27.243163 (3827835) main____ INFO      pid       : 3827835
+2025-12-05 18:46:27.243175 (3827835) main____ INFO      arguments : '-style' 'windows' '-fpv' 'FPV_axiapb.tcl'
+2025-12-05 18:46:27.243181 (3827835) main____ INFO      locale    : UTF-8
+2025-12-05 18:46:27.243184 (3827835) main____ INFO    ----------------------------------------
+2025-12-05 18:46:27.243187 (3827835) main____ INFO    System resource limits info:
+2025-12-05 18:46:27.243193 (3827835) main____ INFO      virtual memory: unlimited
+2025-12-05 18:46:27.243198 (3827835) main____ INFO      cpu time      : unlimited
+2025-12-05 18:46:27.243208 (3827835) main____ INFO      processes     : 255233
+2025-12-05 18:46:27.243217 (3827835) main____ INFO      stack size    : 8388608 B
+2025-12-05 18:46:27.243224 (3827835) main____ INFO      core file size: 0 B
+2025-12-05 18:46:27.243229 (3827835) main____ INFO      open files    : 1024
+2025-12-05 18:46:27.243233 (3827835) main____ INFO      file size     : unlimited
+2025-12-05 18:46:27.243236 (3827835) main____ INFO    ----------------------------------------
+2025-12-05 18:46:27.243238 (3827835) main____ INFO    Memory statistics:
+2025-12-05 18:46:27.243243 (3827835) main____ INFO      total physical memory  : 65401516 kB
+2025-12-05 18:46:27.243247 (3827835) main____ INFO      free physical memory   : 17456660 kB
+2025-12-05 18:46:27.243252 (3827835) main____ INFO      committed address space: 123414128 kB
+2025-12-05 18:46:27.243254 (3827835) main____ INFO    ----------------------------------------
+2025-12-05 18:46:27.244077 (3827835) main____ INFO    Important environment variables:
+2025-12-05 18:46:27.244342 (3827835) main____ INFO      CDS_LIC_FILE       : '5280@bioeelincad.ee.columbia.edu'
+2025-12-05 18:46:27.244360 (3827835) main____ INFO      DISPLAY            : 'localhost:10.0'
+2025-12-05 18:46:27.244365 (3827835) main____ INFO      JASPER_CPU_CHECK   : '1'
+2025-12-05 18:46:27.244370 (3827835) main____ INFO      JASPER_INSTALL_DIR : '/tools/cadence/jasper_2024.06p002'
+2025-12-05 18:46:27.244374 (3827835) main____ INFO      JASPER_KERNEL_CHECK: '1'
+2025-12-05 18:46:27.244379 (3827835) main____ INFO      JASPER_OS_CHECK    : '1'
+2025-12-05 18:46:27.244383 (3827835) main____ INFO      LANG               : 'en_US.UTF-8'
+2025-12-05 18:46:27.244386 (3827835) main____ INFO    ----------------------------------------
+2025-12-05 18:46:27.245055 (3827835) lic_core INFO    Initializing license system ...
+2025-12-05 18:46:27.255445 (3827835) lic_core INFO    ... license system initialized.
+2025-12-05 18:46:27.325160 (3827835) lic__man INFO    Claim 'main' for <ui>.
+2025-12-05 18:46:27.325213 (3827835) lic_core INFO    (1) checking out 'jasper_interactive' ...
+2025-12-05 18:46:27.340646 (3827835) lic_core INFO    ... (1) checkout succeeded
+2025-12-05 18:46:27.340706 (3827835) lic__man INFO    Claim 'fpv' for <ui>.
+2025-12-05 18:46:27.340724 (3827835) lic_core INFO    (2) checking out 'jasper_fpv' ...
+2025-12-05 18:46:27.346313 (3827835) lic_core INFO    ... (2) checkout failed (error: -5) ("FLEXnet ERROR(-5, 0, 0): No such feature exists.")
+2025-12-05 18:46:27.346365 (3827835) lic_core INFO    (3) checking out 'jasper_fao' ...
+2025-12-05 18:46:27.360239 (3827835) lic_core INFO    ... (3) checkout succeeded
+2025-12-05 18:46:27.360769 (3827835) main____ INFO    Tool inactivity delay is 480000 ms.
+2025-12-05 18:46:28.126687 (3827835) lic__man INFO    Claim 'fpv' for <ui>.
+2025-12-05 18:46:28.476590 (3827835) lic__man INFO    Unclaim 'fpv' for <ui>.
+2025-12-05 18:46:28.476650 (3827835) lic__man INFO    Claim 'fpv' for <ui>.
+2025-12-05 18:46:28.530713 (3827835) session_ INFO    Starting analysis session with session id 'session_0' (launcher: <local>) ...
+2025-12-05 18:46:28.533635 (3827835) session_ INFO    Analysis session with session id 'session_0' started (pid: 3827856)
+2025-12-05 18:46:31.538738 (3827835) session_ INFO    Analysis session 'session_0' connected to the console (host: 127.0.0.1:43542)
+2025-12-05 18:46:33.594426 (3827835) lic__man INFO    Unclaim everything for 'session_0'.
+2025-12-05 18:46:33.751585 (3827835) lic__man INFO    Claim 'fpv' for 'session_0'.
+2025-12-05 18:46:33.751638 (3827835) lic__man INFO    Claim 'fpv' for 'session_0/prove-0'.
+2025-12-05 18:46:39.414118 (3827835) lic__man INFO    Unclaim everything for 'session_0/prove-0'.
+2025-12-05 18:58:58.660435 (3827835) lic__man INFO    Entering idle state.
+2025-12-05 19:01:50.711570 (3827835) lic__man INFO    Leaving idle state.
+2025-12-05 19:02:13.499717 (3827835) lic__man INFO    Claim 'fpv' for 'session_0'.
+2025-12-05 19:10:14.660382 (3827835) lic__man INFO    Entering idle state.

@@ -5,10 +5,10 @@
 # version   : 2024.06p002 64 bits
 # build date: 2024.09.02 16:28:38 UTC
 # ----------------------------------------
-# started   : 2025-12-05 17:47:15 EST
+# started   : 2025-12-05 18:46:29 EST
 # hostname  : cadpc03.(none)
-# pid       : 3760739
-# arguments : '-label' 'session_0' '-console' '//127.0.0.1:40359' '-style' 'windows' '-data' 'AAAAkHicY2RgYLCp////PwMYMD6A0Aw2jAyoAMRnQhUJbEChGRhYYZphSkAaOBh0GdIYChjKgGwZBjeGAIYwhniGRIYKhkwgWcCQxKDHUMKQzJAD1gEAwXENkA==' '-proj' '/homes/user/stud/fall25/vg2651/axi2apb/FPV/jgproject/sessionLogs/session_0' '-init' '-hidden' '/homes/user/stud/fall25/vg2651/axi2apb/FPV/jgproject/.tmp/.initCmds.tcl' 'FPV_axiapb.tcl'
+# pid       : 3827856
+# arguments : '-label' 'session_0' '-console' '//127.0.0.1:33041' '-style' 'windows' '-data' 'AAAAkHicY2RgYLCp////PwMYMD6A0Aw2jAyoAMRnQhUJbEChGRhYYZphSkAaOBh0GdIYChjKgGwZBjeGAIYwhniGRIYKhkwgWcCQxKDHUMKQzJAD1gEAwXENkA==' '-proj' '/homes/user/stud/fall25/vg2651/axi2apb/FPV/jgproject/sessionLogs/session_0' '-init' '-hidden' '/homes/user/stud/fall25/vg2651/axi2apb/FPV/jgproject/.tmp/.initCmds.tcl' 'FPV_axiapb.tcl'
 # ----------------------------------------
 #  Copyright (c) 2017 Cadence Design Systems, Inc. All Rights
 #  Reserved.  Unpublished -- rights reserved under the copyright 
@@ -43,3 +43,4 @@ prove -all
 # Report proof results
 report
 
+visualize -violation -property <embedded>::bridge.i_checker.a_l_burst_len_drains -new_window

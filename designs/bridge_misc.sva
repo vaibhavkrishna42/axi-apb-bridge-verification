@@ -1,0 +1,21 @@
+// Miscellaneous coverage properties for the AXI-APB bridge
+module bridge_misc_checker (
+  input clk, res_n,
+  input [3:0] arlen, awlen,
+  input arvalid, awvalid, arready, awready,
+  input [4:0] araddr, awaddr,
+  input rready, bready,
+  input PSEL1, PSEL2, PSEL3, PSEL4, PREADY, PENABLE, PWRITE,
+  input [15:0] PWDATA, PRDATA,
+  input [3:0] current_state, next_state,
+  input rvalid, rlast, bvalid,
+  input [3:0] lenM, lenS
+);
+  import bridge_props_pkg::*;
+
+  cover property (@(posedge clk) (arvalid && arready));
+  cover property (@(posedge clk) (awvalid && awready));
+  cover property (@(posedge clk) (rvalid && rready && rlast));
+  cover property (@(posedge clk) (bvalid && bready));
+  cover property (@(posedge clk) (PSEL1 || PSEL2 || PSEL3 || PSEL4));
+endmodule

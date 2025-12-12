@@ -13,7 +13,10 @@ analyze -sv \
   ${RTL_PATH}/bridge.v
 
 analyze -sva \
-  ${SV_PATH}/bridge.sva \
+  ${SV_PATH}/bridge_props_pkg.sv \
+  ${SV_PATH}/bridge_env_safety.sva \
+  ${SV_PATH}/bridge_liveness.sva \
+  ${SV_PATH}/bridge_misc.sva \
   ${SV_PATH}/bindings.sva
 
 # Elaborate design and properties

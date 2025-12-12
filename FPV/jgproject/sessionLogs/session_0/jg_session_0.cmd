@@ -1,14 +1,14 @@
 # ----------------------------------------
 # Jasper Version Info
 # tool      : Jasper 2024.06
-# platform  : Linux 4.18.0-553.85.1.el8_10.x86_64
+# platform  : Linux 4.18.0-553.89.1.el8_10.x86_64
 # version   : 2024.06p002 64 bits
 # build date: 2024.09.02 16:28:38 UTC
 # ----------------------------------------
-# started   : 2025-12-05 18:46:29 EST
+# started   : 2025-12-12 15:03:51 EST
 # hostname  : cadpc03.(none)
-# pid       : 3827856
-# arguments : '-label' 'session_0' '-console' '//127.0.0.1:33041' '-style' 'windows' '-data' 'AAAAkHicY2RgYLCp////PwMYMD6A0Aw2jAyoAMRnQhUJbEChGRhYYZphSkAaOBh0GdIYChjKgGwZBjeGAIYwhniGRIYKhkwgWcCQxKDHUMKQzJAD1gEAwXENkA==' '-proj' '/homes/user/stud/fall25/vg2651/axi2apb/FPV/jgproject/sessionLogs/session_0' '-init' '-hidden' '/homes/user/stud/fall25/vg2651/axi2apb/FPV/jgproject/.tmp/.initCmds.tcl' 'FPV_axiapb.tcl'
+# pid       : 1185843
+# arguments : '-label' 'session_0' '-console' '//127.0.0.1:36039' '-style' 'windows' '-data' 'AAAAkHicY2RgYLCp////PwMYMD6A0Aw2jAyoAMRnQhUJbEChGRhYYZphSkAaOBh0GdIYChjKgGwZBjeGAIYwhniGRIYKhkwgWcCQxKDHUMKQzJAD1gEAwXENkA==' '-proj' '/homes/user/stud/fall25/vg2651/axi2apb/FPV/jgproject/sessionLogs/session_0' '-init' '-hidden' '/homes/user/stud/fall25/vg2651/axi2apb/FPV/jgproject/.tmp/.initCmds.tcl' 'FPV_axiapb.tcl'
 # ----------------------------------------
 #  Copyright (c) 2017 Cadence Design Systems, Inc. All Rights
 #  Reserved.  Unpublished -- rights reserved under the copyright 
@@ -24,7 +24,10 @@ analyze -sv \
   ${RTL_PATH}/bridge.v
 
 analyze -sva \
-  ${SV_PATH}/bridge.sva \
+  ${SV_PATH}/bridge_props_pkg.sv \
+  ${SV_PATH}/bridge_env_safety.sva \
+  ${SV_PATH}/bridge_liveness.sva \
+  ${SV_PATH}/bridge_misc.sva \
   ${SV_PATH}/bindings.sva
 
 # Elaborate design and properties
@@ -43,4 +46,3 @@ prove -all
 # Report proof results
 report
 
-visualize -violation -property <embedded>::bridge.i_checker.a_l_burst_len_drains -new_window

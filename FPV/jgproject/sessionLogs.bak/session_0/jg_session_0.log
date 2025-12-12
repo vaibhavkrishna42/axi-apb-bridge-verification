@@ -1,14 +1,14 @@
 # ----------------------------------------
 # Jasper Version Info
 # tool      : Jasper 2024.06
-# platform  : Linux 4.18.0-553.85.1.el8_10.x86_64
+# platform  : Linux 4.18.0-553.89.1.el8_10.x86_64
 # version   : 2024.06p002 64 bits
 # build date: 2024.09.02 16:28:38 UTC
 # ----------------------------------------
-# started   : 2025-12-05 18:46:29 EST
-# hostname  : cadpc03.(none)
-# pid       : 3827856
-# arguments : '-label' 'session_0' '-console' '//127.0.0.1:33041' '-style' 'windows' '-data' 'AAAAkHicY2RgYLCp////PwMYMD6A0Aw2jAyoAMRnQhUJbEChGRhYYZphSkAaOBh0GdIYChjKgGwZBjeGAIYwhniGRIYKhkwgWcCQxKDHUMKQzJAD1gEAwXENkA==' '-proj' '/homes/user/stud/fall25/vg2651/axi2apb/FPV/jgproject/sessionLogs/session_0' '-init' '-hidden' '/homes/user/stud/fall25/vg2651/axi2apb/FPV/jgproject/.tmp/.initCmds.tcl' 'FPV_axiapb.tcl'
+# started   : 2025-12-12 15:36:59 EST
+# hostname  : cadpc04.(none)
+# pid       : 1000018
+# arguments : '-label' 'session_0' '-console' '//127.0.0.1:42953' '-style' 'windows' '-data' 'AAAAkHicY2RgYLCp////PwMYMD6A0Aw2jAyoAMRnQhUJbEChGRhYYZphSkAaOBh0GdIYChjKgGwZBjeGAIYwhniGRIYKhkwgWcCQxKDHUMKQzJAD1gEAwXENkA==' '-proj' '/homes/user/stud/fall25/vg2651/axi2apb/FPV/jgproject/sessionLogs/session_0' '-init' '-hidden' '/homes/user/stud/fall25/vg2651/axi2apb/FPV/jgproject/.tmp/.initCmds.tcl' 'FPV_axiapb.tcl'
 
 Any disclosure about the Cadence Design Systems software or its use
 model to any third party violates the written Non-Disclosure Agreement
@@ -61,22 +61,74 @@ INFO: reading configuration file "/user/stud/fall25/vg2651/.config/cadence/jaspe
 % set SV_PATH ${ROOT_PATH}
 ../designs
 % 
+% # Mode selection via environment variable JG_MODE
+% #   all|safety|liveness|misc
+% set mode "all"
+all
+% if {[info exists ::env(JG_MODE)]} {
+  set mode $::env(JG_MODE)
+}
+safety
+% 
+% set SVA_FILES {}
+% switch -- $mode {
+  "safety" {
+    set SVA_FILES [list \
+      ${SV_PATH}/bridge_props_pkg.sv \
+      ${SV_PATH}/bridge_env_safety.sva \
+      ${SV_PATH}/bindings_safety.sva]
+  }
+  "liveness" {
+    set SVA_FILES [list \
+      ${SV_PATH}/bridge_props_pkg.sv \
+      ${SV_PATH}/bridge_liveness.sva \
+      ${SV_PATH}/bindings_liveness.sva]
+  }
+  "misc" {
+    set SVA_FILES [list \
+      ${SV_PATH}/bridge_props_pkg.sv \
+      ${SV_PATH}/bridge_misc.sva \
+      ${SV_PATH}/bindings_misc.sva]
+  }
+  default {
+    set SVA_FILES [list \
+      ${SV_PATH}/bridge_props_pkg.sv \
+      ${SV_PATH}/bridge_env_safety.sva \
+      ${SV_PATH}/bridge_liveness.sva \
+      ${SV_PATH}/bridge_misc.sva \
+      ${SV_PATH}/bindings.sva]
+  }
+}
+../designs/bridge_props_pkg.sv ../designs/bridge_env_safety.sva ../designs/bindings_safety.sva
+% 
 % analyze -sv \
   ${RTL_PATH}/bridge.v
 [-- (VERI-1482)] Analyzing Verilog file '/tools/cadence/jasper_2024.06p002/lib/verilog/packages/std/std.sv' into library 'std'
 [-- (VERI-1482)] Analyzing Verilog file '../designs/bridge.v'
 % 
 % analyze -sva \
-  ${SV_PATH}/bridge.sva \
-  ${SV_PATH}/bindings.sva
-[-- (VERI-1482)] Analyzing Verilog file '../designs/bridge.sva'
-[-- (VERI-1482)] Analyzing Verilog file '../designs/bindings.sva'
+  {*}$SVA_FILES
+[-- (VERI-1482)] Analyzing Verilog file '../designs/bridge_props_pkg.sv'
+[WARN (VERI-2418)] ../designs/bridge_props_pkg.sv(3): parameter 'IDLE' declared inside package 'bridge_props_pkg' shall be treated as localparam
+[WARN (VERI-2418)] ../designs/bridge_props_pkg.sv(4): parameter 'SETUP_M' declared inside package 'bridge_props_pkg' shall be treated as localparam
+[WARN (VERI-2418)] ../designs/bridge_props_pkg.sv(5): parameter 'SETUP_S' declared inside package 'bridge_props_pkg' shall be treated as localparam
+[WARN (VERI-2418)] ../designs/bridge_props_pkg.sv(6): parameter 'ACCESS_S' declared inside package 'bridge_props_pkg' shall be treated as localparam
+[WARN (VERI-2418)] ../designs/bridge_props_pkg.sv(7): parameter 'PREACCESS_M' declared inside package 'bridge_props_pkg' shall be treated as localparam
+[WARN (VERI-2418)] ../designs/bridge_props_pkg.sv(8): parameter 'ACCESS_M' declared inside package 'bridge_props_pkg' shall be treated as localparam
+[WARN (VERI-2418)] ../designs/bridge_props_pkg.sv(9): parameter 'WSETUP_M' declared inside package 'bridge_props_pkg' shall be treated as localparam
+[WARN (VERI-2418)] ../designs/bridge_props_pkg.sv(10): parameter 'WPREACCESS_M' declared inside package 'bridge_props_pkg' shall be treated as localparam
+[WARN (VERI-2418)] ../designs/bridge_props_pkg.sv(11): parameter 'WACCESS_M' declared inside package 'bridge_props_pkg' shall be treated as localparam
+[WARN (VERI-2418)] ../designs/bridge_props_pkg.sv(12): parameter 'WTERMINATE' declared inside package 'bridge_props_pkg' shall be treated as localparam
+[WARN (VERI-2418)] ../designs/bridge_props_pkg.sv(13): parameter 'WSETUP_S' declared inside package 'bridge_props_pkg' shall be treated as localparam
+[WARN (VERI-2418)] ../designs/bridge_props_pkg.sv(14): parameter 'WACCESS_S' declared inside package 'bridge_props_pkg' shall be treated as localparam
+[-- (VERI-1482)] Analyzing Verilog file '../designs/bridge_env_safety.sva'
+[-- (VERI-1482)] Analyzing Verilog file '../designs/bindings_safety.sva'
 % 
 % # Elaborate design and properties
 % elaborate -top bridge
 INFO (ISW003): Top module name is "bridge".
-[INFO (HIER-8002)] ../designs/bridge.v(440): Disabling old hierarchical reference handler
-[INFO (VERI-1018)] ../designs/bridge.sva(4): compiling module 'bridge_checker'
+[INFO (HIER-8002)] ../designs/bridge_props_pkg.sv(15): Disabling old hierarchical reference handler
+[INFO (VERI-1018)] ../designs/bridge_env_safety.sva(2): compiling module 'bridge_env_safety_checker'
 [INFO (VERI-1018)] ../designs/bridge.v(5): compiling module 'bridge'
 [WARN (VERI-1221)] ../designs/bridge.v(159): 'awaddr' should be on the sensitivity list
 [WARN (VERI-1221)] ../designs/bridge.v(160): 'awburst' should be on the sensitivity list
@@ -135,11 +187,11 @@ INFO (ISW003): Top module name is "bridge".
 [WARN (VERI-1209)] ../designs/bridge.v(416): expression size 32 truncated to fit in target size 1
 [WARN (VERI-1209)] ../designs/bridge.v(417): expression size 32 truncated to fit in target size 1
 INFO (INL208): Elaboration synthesis summary:
-  Number of synthesized netlists          3 (1 packages)
+  Number of synthesized netlists          4 (2 packages)
   Single run mode                         On
   Pipeline                                On (2 pipelined netlists)
   Late hierarchical reference connection  On
-  Number of analyzed Verilog modules      3 (3 synthesized)
+  Number of analyzed Verilog modules      4 (4 synthesized)
   Number of analyzed VHDL entities        0 (0 synthesized)
 INFO (INL003): Clearing all state information (assumes, stopats, and so forth).
 bridge
@@ -154,17 +206,17 @@ INFO (IRS006): Current reset condition is "res_n".
 [<embedded>] % get_design_info
 Statistics [for instance "bridge"]
 --------------------------
-# Flops:         1 (822) (818 property flop bits)
+# Flops:         1 (260) (256 property flop bits)
 # Latches:       27 (356)
-# Gates:         6071 (10083)
-# Nets:          6152
+# Gates:         2075 (6050)
+# Nets:          2152
 # Ports:         34
-# RTL Lines:     672
+# RTL Lines:     520
 # RTL Instances: 2
 # Embedded Assumptions: 6
-# Embedded Assertions:  13
-# Embedded Covers:      18
-1178
+# Embedded Assertions:  5
+# Embedded Covers:      5
+616
 [<embedded>] % 
 [<embedded>] % # Prove properties
 [<embedded>] % prove -all
@@ -172,13 +224,13 @@ Ncustom1: Custom engine code is hT3Ng7hPPfiYQOTDZ3qhYOwGAM51eA+J/FjkM5shLioAsqhg
 Bcustom2: Custom engine code is hT3Nm7hPr1Vp3Di1Ra2USNIGL4JypRnLKLAdF6JAyuavO2JfGCiY9OZJhcAcOUnLx5xwNdhILGrAWX9s+z2WDkKwNR7tAfClBEjRFVQeq6DU54boFgEA
 AMcustom3: Custom engine code is hT3Ng7hP/feYQOTDZ3qhYOwGAM51eA+J/FjkM5shLioAsqhgLR4Ft+O1BuKG6ilQ83B9tLXSmmqwm7g9AQA
 Mpcustom4: Custom engine code is hT3NZbhP9fmY2AbBQnsjfOxn6c+6e6yL+/e8fZFmaQrnlgEA
-INFO (IPF036): Starting proof on task: "<embedded>", 31 properties to prove with 0 already proven/unreachable
+INFO (IPF036): Starting proof on task: "<embedded>", 10 properties to prove with 0 already proven/unreachable
 INFO (IRS029): Starting reset analysis: phase 1 of 4.
 INFO (IRS030): Running reset analysis: phase 2 of 4.
 INFO (IRS031): Running reset analysis: phase 3 of 4.
 INFO (IRS020): Starting the reset analysis simulation with a limit of 100 iterations (phase 4 of 4).
 INFO (IRS024): Reset iterations 0 to 4 analyzed.
-INFO (IRS018): Reset analysis simulation executed for 3 iterations. Assigned values for 4 of 4 design flops, 67 of 356 design latches, 855 of 855 internal elements.
+INFO (IRS018): Reset analysis simulation executed for 3 iterations. Assigned values for 4 of 4 design flops, 67 of 356 design latches, 272 of 272 internal elements.
 INFO (IRS039): Reset analysis complete.
 INFO (IPF031): Settings used for proof thread 0:
     orchestration                 = on
@@ -189,8 +241,6 @@ INFO (IPF031): Settings used for proof thread 0:
     max engine jobs               = auto
     proofgrid_mode                = local
     proofgrid_restarts            = 10
-0: Using multistage preprocessing
-0: Starting reduce
 AMcustom5: Custom engine code is hT3N1rhP11/52HrFRS21ROp2LOjVTgPvT8L8BGXHgLhaIuqtT4nARFjUqrBL+7pLmaTOzBepZW/Jm8SSrHDybSQtoNiO3y43wk+dEoWlsZizu97Fih6O6lPVG/LpWP5SsUPwlGagLNa1FKEFvwVXyX7//8prySbvSxIHXr5er+z4RAEA
 Ncustom6: Custom engine code is hT3OXrhPByJp3TrFSTLhUmMH4KVtJgmTCnNDF46yMXOKY48m4LS5nE7yBzFjA7kDuwO/GhGUpEPiky3p3wmPn3dJZHxFMsafSoObRzSC+tn7sEY0WbTdZ/FV4hL3MYH/b1CIUvXSWR4wqEoVLsmMOD4xIPT4lI1LO6ZCO7PnnWQuLwetnvKlrXx6wCW/A+x+enqslg1YPobi4wEF/EvbzOvcTYdJvl2s4H2yZg2b2ofAVN5WvhWk1HoBAA
 ADcustom7: Custom engine code is hT3Nv7hPv1752HrFRa2kROx2f/ECJeZB2AZsLdlO8VwmIuqtT4nIDFXclhg+O+o+DMmQCekbheGk0kK28laA9gaOFDXsQp29J3X615HY1IPHJWd6FUFvCHjO+p1k652b5JJvZlShNpGlGSXAiQe/mEAj6tEBAA
@@ -201,351 +251,139 @@ AGcustom11: Custom engine code is hT3NirhP/fmYQADBZnYcglOvK9Pfd7EOeniIqP8jNsyIqI
 Bcustom12: Custom engine code is hT3NjrhPDfiYQADBZnYcglOvK9PfWxFtenjIyBqfrgr7if/jL/yPOuK1BAflEcW0DxNH2eDIoezN2gxlQFg81RZtiWXh7aiTAidvAQA
 Ncustom13: Custom engine code is hT3NR7hPByFp3TrFSTLhUmMH4KWtJglTyV/c51BHEeZWamnJv767nE6PCak26bd3gf3XGN3rIRheufhDieCJQVISo+gNYUKhiUedBKGtsP/a18svAnlMJZudHxDFwK5ufsyoxsIyiAeSY2oi3tEuoDHr5gw42DFKAG3PqO3CEsl8Azzdt3pl5nGA1Ifv2H02eYsFzWb/nfp8PMb3F0krE/EgBcm8TD9Div8BAA
 Tricustom14: Custom engine code is hT3Nu7hP3fiYQADBZnYcglNHp9bfd7EOeniIqP/ji8sGLQu8yhsFO+wxJ+O+R0bU8g/IewXFomyos+viQnWc2xYNYmMqpo3i40O7DaZR7qfp4YqNx26KRvQ/qx0BAA
-0: Finished reduce in 0.018s
+0: Using multistage preprocessing
+0: Starting reduce
+0: Finished reduce in 0.013s
 0.0.PRE: Performing Proof Simplification...
-0.0.N: clocks: 25, declared: 1, looping: 0, posedge: 25, negedge: 0, noedge: 0, bothedge: 0
+0.0.N: clocks: 24, declared: 1, looping: 0, posedge: 24, negedge: 0, noedge: 0, bothedge: 0
 0.0.N: Proof Simplification Iteration 1	[0.00 s]
-0.0.N: Proof Simplification Iteration 2	[0.01 s]
-0.0.N: Proof Simplification Iteration 3	[0.01 s]
-0.0.N: Proof Simplification Iteration 4	[0.02 s]
-0.0.N: Proof Simplification Iteration 5	[0.02 s]
-0.0.N: Proof Simplification Iteration 6	[0.02 s]
-0.0.N: Proof Simplification Iteration 7	[0.02 s]
-0.0.PRE: Proof Simplification completed in 0.04 s
-0.0.N: Identified and disabled 5 duplicated targets.
+0.0.N: Proof Simplification Iteration 2	[0.00 s]
+0.0.N: Proof Simplification Iteration 3	[0.00 s]
+0.0.N: Proof Simplification Iteration 4	[0.00 s]
+0.0.N: Proof Simplification Iteration 5	[0.00 s]
+0.0.N: Proof Simplification Iteration 6	[0.00 s]
+0.0.N: Proof Simplification Iteration 7	[0.01 s]
+0.0.PRE: Proof Simplification completed in 0.03 s
 0: About to start ProofGrid in its own thread with a limit of 10000 pending notifications and a limit of 10 traces.
 0: =============================== ProofGrid start ===============================
-0: ProofGrid usable level: 26
+0: ProofGrid usable level: 10
 0: Initial ProofGrid level: 1
 0: ProofGrid is starting event handling
-0.0.Hp: Proofgrid shell started at 3827937@cadpc03(local) jg_3827856_cadpc03_1
-0.0.N: Proofgrid shell started at 3827936@cadpc03(local) jg_3827856_cadpc03_1
-0.0.Hp: clocks: 1, declared: 1, looping: 0, posedge: 1, negedge: 0, noedge: 0, bothedge: 0
+0.0.Hp: Proofgrid shell started at 1000154@cadpc04(local) jg_1000018_cadpc04_1
+0.0.N: Proofgrid shell started at 1000153@cadpc04(local) jg_1000018_cadpc04_1
 0.0.N: clocks: 1, declared: 1, looping: 0, posedge: 1, negedge: 0, noedge: 0, bothedge: 0
+0.0.Hp: clocks: 1, declared: 1, looping: 0, posedge: 1, negedge: 0, noedge: 0, bothedge: 0
 0.0.N: Next scan (0) will use per property time limit: 1s * 10 ^ 0 = 1s
-0.0.N: Starting proof for property "bridge.i_checker._assume_4:precondition1"	[0.00 s].
-0.0.N: Starting proof for property "bridge.i_checker.a_l_read_complete_bounded:precondition1"	[0.00 s].
-0.0.N: Starting proof for property "bridge.i_checker._cover_20"	[0.00 s].
-0.0.N: Trace Attempt  1	[0.00 s]
-0.0.N: Trace Attempt  2	[0.00 s]
-0.0.Hp: A proof was found: No trace exists. [0.02 s]
-INFO (IPF057): 0.0.Hp: The property "bridge.i_checker.a_no_simul_rw_same_addr" was proven in 0.01 s.
-0.0.Hp: A proof was found: No trace exists. [0.02 s]
-INFO (IPF057): 0.0.Hp: The property "bridge.i_checker.a_pen_without_psel" was proven in 0.01 s.
-0.0.Hp: A proof was found: No trace exists. [0.02 s]
-INFO (IPF057): 0.0.Hp: The property "bridge.i_checker.a_fsm_valid_state" was proven in 0.03 s.
-0.0.Hp: Trace Attempt  1	[0.02 s]
-0.0.Hp: A trace with 1 cycles was found. [0.02 s]
-INFO (IPF047): 0.0.Hp: The cover property "bridge.i_checker.a_l_ack_request_from_idle:precondition1" was covered in 1 cycles in 0.32 s.
-0.0.Hp: A trace with 1 cycles was found. [0.02 s]
-INFO (IPF047): 0.0.Hp: The cover property "bridge.i_checker.a_l_ack_aw_from_idle:precondition1" was covered in 1 cycles in 0.35 s.
-0.0.N: Trace Attempt  2	[0.00 s]
-0.0.N: A trace with 2 cycles was found. [0.01 s]
-INFO (IPF047): 0.0.N: The cover property "bridge.i_checker._assume_4:precondition1" was covered in 2 cycles in 0.38 s.
-INFO (IPF047): 0.0.N: The cover property "bridge.i_checker._assume_6:precondition1" was covered in 2 cycles in 0.38 s by the incidental trace "bridge.i_checker._assume_4:precondition1".
-INFO (IPF047): 0.0.N: The cover property "bridge.i_checker.a_l_fsm_returns_idle:precondition1" was covered in 2 cycles in 0.38 s by the incidental trace "bridge.i_checker._assume_4:precondition1".
-INFO (IPF047): 0.0.N: The cover property "bridge.i_checker.a_l_burst_len_drains:precondition1" was covered in 2 cycles in 0.38 s by the incidental trace "bridge.i_checker._assume_4:precondition1".
-INFO (IPF047): 0.0.N: The cover property "bridge.i_checker.a_l_read_complete_bounded:precondition1" was covered in 2 cycles in 0.38 s.
-INFO (IPF047): 0.0.N: The cover property "bridge.i_checker._cover_20" was covered in 2 cycles in 0.38 s.
-INFO (IPF047): 0.0.N: The cover property "bridge.i_checker._cover_24" was covered in 2 cycles in 0.38 s by the incidental trace "bridge.i_checker._assume_4:precondition1".
-0.0.N: Stopped processing property "bridge.i_checker._assume_4:precondition1"	[0.41 s].
-0.0.N: Stopped processing property "bridge.i_checker.a_l_read_complete_bounded:precondition1"	[0.41 s].
-0.0.N: Stopped processing property "bridge.i_checker._cover_20"	[0.41 s].
-0.0.N: Starting proof for property "bridge.i_checker._assume_5:precondition1"	[0.00 s].
-0.0.N: Starting proof for property "bridge.i_checker.a_l_write_resp_bounded:precondition1"	[0.00 s].
-0.0.N: Starting proof for property "bridge.i_checker._cover_21"	[0.00 s].
+0.0.N: Starting proof for property "bridge.i_bridge_env_safety._assume_4:precondition1"	[0.00 s].
+0.0.N: Trace Attempt  1	[0.03 s]
+0.0.N: Trace Attempt  2	[0.04 s]
+0.0.N: Trace Attempt  2	[0.04 s]
+0.0.N: A trace with 2 cycles was found. [0.04 s]
+INFO (IPF047): 0.0.N: The cover property "bridge.i_bridge_env_safety._assume_4:precondition1" was covered in 2 cycles in 0.22 s.
+INFO (IPF047): 0.0.N: The cover property "bridge.i_bridge_env_safety._assume_6:precondition1" was covered in 2 cycles in 0.22 s by the incidental trace "bridge.i_bridge_env_safety._assume_4:precondition1".
+0.0.N: Stopped processing property "bridge.i_bridge_env_safety._assume_4:precondition1"	[0.24 s].
+0.0.N: Starting proof for property "bridge.i_bridge_env_safety._assume_5:precondition1"	[0.00 s].
 0.0.N: Trace Attempt  1	[0.00 s]
 0.0.N: Trace Attempt  2	[0.00 s]
 0.0.N: Trace Attempt  2	[0.00 s]
-0.0.N: A trace with 2 cycles was found. [0.01 s]
-INFO (IPF047): 0.0.N: The cover property "bridge.i_checker._assume_5:precondition1" was covered in 2 cycles in 0.00 s.
-INFO (IPF047): 0.0.N: The cover property "bridge.i_checker.a_l_write_resp_bounded:precondition1" was covered in 2 cycles in 0.00 s.
-INFO (IPF047): 0.0.N: The cover property "bridge.i_checker._cover_21" was covered in 2 cycles in 0.00 s.
-0.0.N: Stopped processing property "bridge.i_checker._assume_5:precondition1"	[0.16 s].
-0.0.N: Stopped processing property "bridge.i_checker.a_l_write_resp_bounded:precondition1"	[0.16 s].
-0.0.N: Stopped processing property "bridge.i_checker._cover_21"	[0.16 s].
-0.0.N: Starting proof for property "bridge.i_checker.a_p_pwrite_pwd_stable"	[0.00 s].
+0.0.N: A trace with 2 cycles was found. [0.00 s]
+INFO (IPF047): 0.0.N: The cover property "bridge.i_bridge_env_safety._assume_5:precondition1" was covered in 2 cycles in 0.00 s.
+0.0.N: Stopped processing property "bridge.i_bridge_env_safety._assume_5:precondition1"	[0.02 s].
+0.0.N: Starting proof for property "bridge.i_bridge_env_safety.a_no_simul_rw_same_addr"	[0.00 s].
 0.0.N: Trace Attempt  1	[0.00 s]
 0.0.N: Trace Attempt  2	[0.00 s]
 0.0.N: Trace Attempt  3	[0.00 s]
-0.0.N: Trace Attempt  3	[0.01 s]
-0.0.N: Trace Attempt  4	[0.02 s]
-0.0.N: Trace Attempt  5	[0.02 s]
-0.0.N: Trace Attempt  7	[0.08 s]
-0.0.N: A trace with 7 cycles was found. [0.10 s]
-INFO (IPF055): 0.0.N: A counterexample (cex) with 7 cycles was found for the property "bridge.i_checker.a_p_pwrite_pwd_stable" in 0.01 s.
-INFO (IPF047): 0.0.N: The cover property "bridge.i_checker.a_p_pwrite_pwd_stable:precondition1" was covered in 6 cycles in 0.01 s by the incidental trace "bridge.i_checker.a_p_pwrite_pwd_stable".
-INFO (IPF047): 0.0.N: The cover property "bridge.i_checker.a_l_apb_transfer_bounded:precondition1" was covered in 7 cycles in 0.01 s by the incidental trace "bridge.i_checker.a_p_pwrite_pwd_stable".
-INFO (IPF047): 0.0.N: The cover property "bridge.i_checker._cover_23" was covered in 5 cycles in 0.01 s by the incidental trace "bridge.i_checker.a_p_pwrite_pwd_stable".
-0.0.N: Stopped processing property "bridge.i_checker.a_p_pwrite_pwd_stable"	[0.07 s].
-0.0.N: Starting proof for property "bridge.i_checker.a_sample_prdata_only_on_pready"	[0.00 s].
+0.0.N: Trace Attempt  4	[0.00 s]
+0.0.N: A proof was found: No trace exists. [0.00 s]
+INFO (IPF057): 0.0.N: The property "bridge.i_bridge_env_safety.a_no_simul_rw_same_addr" was proven in 0.00 s.
+0.0.N: Stopped processing property "bridge.i_bridge_env_safety.a_no_simul_rw_same_addr"	[0.00 s].
+0.0.N: Starting proof for property "bridge.i_bridge_env_safety.a_pen_without_psel"	[0.00 s].
 0.0.N: Trace Attempt  1	[0.00 s]
 0.0.N: Trace Attempt  2	[0.00 s]
 0.0.N: Trace Attempt  3	[0.00 s]
-0.0.N: Trace Attempt  3	[0.00 s]
-0.0.N: Trace Attempt  4	[0.01 s]
-0.0.N: Trace Attempt  4	[0.01 s]
-0: ProofGrid is temporarily paused because there are too many pending traces.
-0: ProofGrid is resuming to work after pausing for 0s. The amount of pending traces decreased.
-0.0.N: A trace with 4 cycles was found. [0.02 s]
-INFO (IPF055): 0.0.N: A counterexample (cex) with 4 cycles was found for the property "bridge.i_checker.a_sample_prdata_only_on_pready" in 0.02 s.
-INFO (IPF047): 0.0.N: The cover property "bridge.i_checker.a_sample_prdata_only_on_pready:precondition1" was covered in 3 cycles in 0.02 s by the incidental trace "bridge.i_checker.a_sample_prdata_only_on_pready".
-INFO (IPF047): 0.0.N: The cover property "bridge.i_checker.a_l_apb_transfer_bounded:precondition1" was covered in 3 cycles in 0.02 s by the incidental trace "bridge.i_checker.a_sample_prdata_only_on_pready".
-0.0.Hp: Trace Attempt  2	[0.17 s]
-0.0.Hp: Trace Attempt  3	[0.28 s]
-0.0.Hp: Trace Attempt  4	[0.42 s]
-0.0.Ht: Proofgrid shell started at 3827968@cadpc03(local) jg_3827856_cadpc03_1
-0.0.Bm: Proofgrid shell started at 3827969@cadpc03(local) jg_3827856_cadpc03_1
-0.0.Mpcustom4: Proofgrid shell started at 3827970@cadpc03(local) jg_3827856_cadpc03_1
-0.0.Oh: Proofgrid shell started at 3827971@cadpc03(local) jg_3827856_cadpc03_1
-0.0.L: Proofgrid shell started at 3827972@cadpc03(local) jg_3827856_cadpc03_1
-0.0.B: Proofgrid shell started at 3827973@cadpc03(local) jg_3827856_cadpc03_1
-0.0.AM: Proofgrid shell started at 3827974@cadpc03(local) jg_3827856_cadpc03_1
-0.0.N: Stopped processing property "bridge.i_checker.a_sample_prdata_only_on_pready"	[0.16 s].
-0.0.N: Starting proof for property "bridge.i_checker.a_l_read_complete_bounded"	[0.00 s].
+0.0.N: A proof was found: No trace exists. [0.00 s]
+INFO (IPF057): 0.0.N: The property "bridge.i_bridge_env_safety.a_pen_without_psel" was proven in 0.00 s.
+0.0.N: Stopped processing property "bridge.i_bridge_env_safety.a_pen_without_psel"	[0.00 s].
+0.0.N: Starting proof for property "bridge.i_bridge_env_safety.a_p_pwrite_pwd_stable"	[0.00 s].
 0.0.N: Trace Attempt  1	[0.00 s]
 0.0.N: Trace Attempt  2	[0.00 s]
 0.0.N: Trace Attempt  3	[0.00 s]
 0.0.N: Trace Attempt  3	[0.00 s]
 0.0.N: Trace Attempt  4	[0.01 s]
 0.0.N: Trace Attempt  5	[0.01 s]
-0.0.N: Trace Attempt  5	[0.01 s]
-0.0.AM: clocks: 1, declared: 1, looping: 0, posedge: 1, negedge: 0, noedge: 0, bothedge: 0
-0.0.AM: Next scan (0) will use per property time limit: 1s * 10 ^ 0 = 1s
-0.0.AM: Starting proof for property "bridge.i_checker.a_l_read_complete_bounded"	[0.00 s].
-0.0.AM: Trace Attempt  1	[0.00 s]
-0.0.AM: Trace Attempt  2	[0.00 s]
-0.0.AM: Trace Attempt  3	[0.00 s]
-0.0.AM: Trace Attempt  4	[0.01 s]
-0.0.Ht: clocks: 1, declared: 1, looping: 0, posedge: 1, negedge: 0, noedge: 0, bothedge: 0
-0.0.Ht: Trace Attempt  1	[0.01 s]
-0.0.Ht: Trace Attempt  2	[0.01 s]
-0.0.Ht: Trace Attempt  3	[0.01 s]
-0.0.Ht: Trace Attempt  4	[0.01 s]
-0.0.Ht: Trace Attempt  5	[0.01 s]
-0.0.Bm: clocks: 1, declared: 1, looping: 0, posedge: 1, negedge: 0, noedge: 0, bothedge: 0
-0.0.Bm: Trace Attempt  1	[0.01 s]
-0.0.Bm: Trace Attempt  2	[0.01 s]
-0.0.Bm: Trace Attempt  3	[0.01 s]
-0.0.Mpcustom4: clocks: 1, declared: 1, looping: 0, posedge: 1, negedge: 0, noedge: 0, bothedge: 0
-0.0.Mpcustom4: Trace Attempt  1	[0.01 s]
-0.0.Mpcustom4: Trace Attempt  2	[0.01 s]
-0.0.Oh: clocks: 1, declared: 1, looping: 0, posedge: 1, negedge: 0, noedge: 0, bothedge: 0
-0.0.L: clocks: 1, declared: 1, looping: 0, posedge: 1, negedge: 0, noedge: 0, bothedge: 0
-0.0.L: Using trace diversification with seed 1 (0.05)
-0.0.L: Using LRU state removal heuristic
-0.0.L: Using states from traces to { (reset) }
-0.0.L: Trace Attempt  3	[0.01 s]
-0.0.B: clocks: 1, declared: 1, looping: 0, posedge: 1, negedge: 0, noedge: 0, bothedge: 0
-0.0.B: Next scan (0) will use per property time limit: 1s * 10 ^ 0 = 1s
-0.0.B: Starting proof for property "bridge.i_checker.a_l_read_complete_bounded"	[0.00 s].
-0.0.B: Trace Attempt  1	[0.00 s]
-0.0.AM: Trace Attempt  5	[0.01 s]
-0.0.B: Trace Attempt  2	[0.00 s]
-0.0.Bm: Trace Attempt  4	[0.04 s]
-0.0.B: Trace Attempt  3	[0.01 s]
-0.0.Bm: Trace Attempt  5	[0.04 s]
-0.0.Oh: A proof was found: No trace exists. [0.03 s]
-INFO (IPF057): 0.0.Oh: The property "bridge.i_checker.a_l_apb_transfer_bounded" was proven in 0.00 s.
-0.0.B: Trace Attempt  4	[0.03 s]
-0.0.B: Trace Attempt  5	[0.04 s]
-0.0.L: Using states from traces to { bridge.i_checker.a_l_fsm_returns_idle:precondition1 (2) }
-0.0.Oh: bwd trail(1): 1 0.065723s
-0.0.Oh: All properties either determined or skipped. [0.11 s]
-0.0.L: Trace Attempt  3	[0.11 s]
-0.0.Oh: Exited with Success (@ 0.56 s)
-0.0.Oh: Completed, Restart ignored.
-0: ProofGrid usable level: 9
-0.0.Mpcustom4: Trace Attempt  3	[0.12 s]
-0.0.L: Trace Attempt  4	[0.13 s]
-0.0.Mpcustom4: Trace Attempt  4	[0.14 s]
-0.0.L: Using states from traces to { bridge.i_checker._assume_6:precondition1 (4) }
-0.0.L: Trace Attempt  3	[0.14 s]
-0.0.Mpcustom4: Trace Attempt  3	[0.14 s]
-0.0.Mpcustom4: Trace Attempt  4	[0.14 s]
-0.0.L: Using states from traces to { bridge.i_checker._assume_4:precondition1 (5) }
-0.0.L: Trace Attempt  3	[0.16 s]
-0.0.L: Using states from traces to { bridge.i_checker.a_sample_prdata_only_on_pready <6> }
-0.0.L: Trace Attempt  3	[0.18 s]
-0.0.L: Trace Attempt  4	[0.19 s]
-0.0.Mpcustom4: Trace Attempt  4	[0.20 s]
-0.0.Mpcustom4: Trace Attempt  5	[0.20 s]
-0.0.L: Trace Attempt  5	[0.20 s]
-0.0.Mpcustom4: Trace Attempt  5	[0.32 s]
-0.0.Mpcustom4: Validation of fixpoint was successful. Time = 0.01
-0.0.Mpcustom4: Trace Attempt 15	[0.53 s]
-0.0.Mpcustom4: A proof was found: No trace exists. [0.56 s]
-INFO (IPF051): 0.0.Mpcustom4: The cover property "bridge.i_checker.a_l_buffered_read_drains:precondition1" was proven unreachable in 0.20 s.
-0.0.Mpcustom4: A proof was found: No trace exists. [0.56 s]
-INFO (IPF051): 0.0.Mpcustom4: The cover property "bridge.i_checker._cover_22" was proven unreachable in 0.20 s.
-0.0.Mpcustom4: Trace Attempt  5	[0.57 s]
-0.0.Hp: A proof was found: No trace exists. [1.04 s]
-INFO (IPF057): 0.0.Hp: The property "bridge.i_checker.a_l_ack_request_from_idle" was proven in 1.05 s.
-0.0.Hp: A proof was found: No trace exists. [1.04 s]
-INFO (IPF057): 0.0.Hp: The property "bridge.i_checker.a_l_ack_aw_from_idle" was proven in 1.05 s.
-0.0.N: Trace Attempt 48	[1.04 s]
-0.0.N: Per property time limit expired (1.00 s) [1.04 s]
-0.0.N: Stopped processing property "bridge.i_checker.a_l_read_complete_bounded"	[0.40 s].
-0.0.B: Trace Attempt 49	[0.72 s]
-0.0.B: Per property time limit expired (0.73 s) [0.76 s]
-0.0.B: Stopped processing property "bridge.i_checker.a_l_read_complete_bounded"	[0.41 s].
-0.0.B: Starting proof for property "bridge.i_checker.a_l_write_resp_bounded"	[0.00 s].
-0.0.B: Trace Attempt  1	[0.00 s]
-0.0.N: Starting proof for property "bridge.i_checker.a_l_write_resp_bounded"	[0.00 s].
+0.0.Hp: A proof was found: No trace exists. [0.12 s]
+INFO (IPF057): 0.0.Hp: The property "bridge.i_bridge_env_safety.a_fsm_valid_state" was proven in 0.25 s.
+0.0.N: Trace Attempt  7	[0.02 s]
+0.0.N: A trace with 7 cycles was found. [0.02 s]
+INFO (IPF055): 0.0.N: A counterexample (cex) with 7 cycles was found for the property "bridge.i_bridge_env_safety.a_p_pwrite_pwd_stable" in 0.00 s.
+INFO (IPF047): 0.0.N: The cover property "bridge.i_bridge_env_safety.a_p_pwrite_pwd_stable:precondition1" was covered in 6 cycles in 0.00 s by the incidental trace "bridge.i_bridge_env_safety.a_p_pwrite_pwd_stable".
+0.0.N: Stopped processing property "bridge.i_bridge_env_safety.a_p_pwrite_pwd_stable"	[0.02 s].
+0.0.N: Starting proof for property "bridge.i_bridge_env_safety.a_sample_prdata_only_on_pready"	[0.00 s].
 0.0.N: Trace Attempt  1	[0.00 s]
+0.0.Hp: Trace Attempt  1	[0.13 s]
+0.0.Hp: Trace Attempt  2	[0.13 s]
 0.0.N: Trace Attempt  2	[0.00 s]
 0.0.N: Trace Attempt  3	[0.00 s]
-0.0.N: Trace Attempt  3	[0.01 s]
-0.0.N: Trace Attempt  4	[0.01 s]
-0.0.N: Trace Attempt  5	[0.01 s]
-0.0.B: Trace Attempt  2	[0.00 s]
-0.0.B: Trace Attempt  3	[0.01 s]
-0.0.AM: Trace Attempt 67	[0.73 s]
-0.0.AM: Per property time limit expired (0.73 s) [0.78 s]
-0.0.AM: Stopped processing property "bridge.i_checker.a_l_read_complete_bounded"	[0.43 s].
-0.0.AM: Starting proof for property "bridge.i_checker.a_l_write_resp_bounded"	[0.00 s].
-0.0.AM: Trace Attempt  1	[0.00 s]
-0.0.AM: Trace Attempt  2	[0.00 s]
-0.0.AM: Trace Attempt  3	[0.00 s]
-0.0.N: Trace Attempt  5	[0.01 s]
-0.0.B: Trace Attempt  4	[0.01 s]
-0.0.AM: Trace Attempt  4	[0.01 s]
-0.0.AM: Trace Attempt  5	[0.01 s]
-0.0.B: Trace Attempt  5	[0.02 s]
-0: ProofGrid usable level: 5
-0.0.B: Trace Attempt 70	[0.97 s]
-0.0.B: Per property time limit expired (1.00 s) [1.02 s]
-0.0.B: Stopped processing property "bridge.i_checker.a_l_write_resp_bounded"	[1.02 s].
-0.0.B: Starting proof for property "bridge.i_checker.a_l_fsm_returns_idle"	[0.00 s].
-0.0.B: Trace Attempt  1	[0.00 s]
-0.0.B: Trace Attempt  2	[0.00 s]
-0.0.B: Trace Attempt  3	[0.01 s]
-0.0.N: Trace Attempt 48	[1.05 s]
-0.0.N: Stopped processing property "bridge.i_checker.a_l_write_resp_bounded"	[1.04 s].
-0.0.N: Starting proof for property "bridge.i_checker.a_l_fsm_returns_idle"	[0.00 s].
-0.0.N: Trace Attempt  1	[0.00 s]
-0.0.N: Trace Attempt  2	[0.00 s]
-0.0.B: Trace Attempt  4	[0.01 s]
-0.0.B: Trace Attempt  5	[0.02 s]
-0.0.N: Trace Attempt  2	[0.01 s]
-0.0.N: Trace Attempt  3	[0.01 s]
-0.0.N: Trace Attempt  3	[0.01 s]
-0.0.AM: Trace Attempt 72	[0.97 s]
-0.0.AM: Per property time limit expired (1.00 s) [1.05 s]
-0.0.AM: Stopped processing property "bridge.i_checker.a_l_write_resp_bounded"	[1.06 s].
-0.0.AM: Starting proof for property "bridge.i_checker.a_l_fsm_returns_idle"	[0.00 s].
-0.0.AM: Trace Attempt  1	[0.00 s]
-0.0.AM: Trace Attempt  2	[0.00 s]
-0.0.AM: Trace Attempt  3	[0.00 s]
-0.0.AM: Trace Attempt  4	[0.01 s]
-0.0.AM: Trace Attempt  5	[0.01 s]
-0.0.N: Trace Attempt  4	[0.01 s]
-0.0.N: Trace Attempt  4	[0.02 s]
-0.0.N: Trace Attempt  5	[0.02 s]
-0.0.N: Trace Attempt  5	[0.03 s]
-0.0.Bm: Trace Attempt 103	[2.33 s]
-0.0.Bm: A trace with 103 cycles was found. [2.42 s]
-INFO (IPF055): 0.0.Bm: A counterexample (cex) with 103 cycles was found for the property "bridge.i_checker.a_l_read_complete_bounded" in 2.07 s.
-INFO (IPF055): 0.0.Bm: A counterexample (cex) with 103 cycles was found for the property "bridge.i_checker.a_l_fsm_returns_idle" in 2.07 s.
-INFO (IPF055): 0.0.Bm: A counterexample (cex) with 103 cycles was found for the property "bridge.i_checker.a_l_burst_len_drains" in 2.07 s.
-0: ProofGrid usable level: 2
-0.0.N: Trace Attempt 22	[0.57 s]
-0.0.N: Stopped processing property "bridge.i_checker.a_l_fsm_returns_idle"	[0.86 s].
-0.0.N: Starting proof for property "bridge.i_checker.a_l_buffered_read_drains"	[0.00 s].
-0.0.N: Trace Attempt  1	[0.00 s]
-0.0.N: Trace Attempt  2	[0.00 s]
 0.0.N: Trace Attempt  3	[0.00 s]
-0.0.N: Trace Attempt  3	[0.01 s]
-0.0.B: Trace Attempt 50	[0.62 s]
-0.0.B: Stopped processing property "bridge.i_checker.a_l_fsm_returns_idle"	[0.87 s].
-0.0.B: Starting proof for property "bridge.i_checker.a_l_buffered_read_drains"	[0.00 s].
-0.0.B: Trace Attempt  1	[0.00 s]
-0.0.B: Trace Attempt  2	[0.00 s]
-0.0.N: Trace Attempt  4	[0.01 s]
-0.0.N: Trace Attempt  5	[0.01 s]
-0.0.N: Trace Attempt  5	[0.01 s]
-0.0.Bm: A trace with 103 cycles was found. [2.45 s]
-INFO (IPF055): 0.0.Bm: A counterexample (cex) with 103 cycles was found for the property "bridge.i_checker.a_l_write_resp_bounded" in 2.33 s.
-0.0.Bm: Trace Attempt 104	[2.46 s]
-0.0.B: Trace Attempt  3	[0.01 s]
-0.0.B: Trace Attempt  4	[0.01 s]
-0.0.B: Trace Attempt  5	[0.02 s]
-0.0.AM: Trace Attempt 60	[0.58 s]
-0.0.AM: Stopped processing property "bridge.i_checker.a_l_fsm_returns_idle"	[0.99 s].
-0.0.AM: Starting proof for property "bridge.i_checker.a_l_buffered_read_drains"	[0.00 s].
-0.0.AM: Trace Attempt  1	[0.00 s]
-0.0.AM: Trace Attempt  2	[0.00 s]
-0.0.AM: Trace Attempt  3	[0.00 s]
-0.0.AM: Trace Attempt  4	[0.01 s]
-0.0.AM: Trace Attempt  5	[0.01 s]
-0: ProofGrid usable level: 1
-0.0.B: Trace Attempt 74	[0.98 s]
-0.0.B: Per property time limit expired (1.00 s) [1.03 s]
-0.0.B: Stopped processing property "bridge.i_checker.a_l_buffered_read_drains"	[0.79 s].
-0.0.N: Trace Attempt 48	[1.04 s]
-0.0.N: Stopped processing property "bridge.i_checker.a_l_buffered_read_drains"	[0.81 s].
-0.0.N: Last scan. Per property time limit: 0s
-0.0.N: Starting proof for property "bridge.i_checker.a_l_buffered_read_drains"	[0.00 s].
-0.0.B: Last scan. Per property time limit: 0s
-0.0.B: Starting proof for property "bridge.i_checker.a_l_buffered_read_drains"	[0.00 s].
-0.0.B: Trace Attempt  1	[0.00 s]
-0.0.B: Trace Attempt  2	[0.00 s]
-0.0.B: Trace Attempt  3	[0.01 s]
-0.0.B: Trace Attempt  4	[0.01 s]
-0.0.B: Trace Attempt  5	[0.02 s]
-0.0.N: Trace Attempt 47	[0.05 s]
-0.0.AM: Trace Attempt 78	[0.99 s]
-0.0.AM: Stopped processing property "bridge.i_checker.a_l_buffered_read_drains"	[0.70 s].
-0.0.AM: Last scan. Per property time limit: 0s
-0.0.AM: Starting proof for property "bridge.i_checker.a_l_buffered_read_drains"	[0.00 s].
-0.0.AM: Trace Attempt  1	[0.00 s]
-0.0.AM: Trace Attempt  2	[0.00 s]
-0.0.AM: Trace Attempt  3	[0.00 s]
-0.0.AM: Trace Attempt  4	[0.01 s]
-0.0.AM: Trace Attempt  5	[0.01 s]
-0.0.L: Trace Attempt 89	[4.21 s]
-0.0.Ht: Trace Attempt 104	[4.32 s]
+0.0.N: Trace Attempt  4	[0.00 s]
+0.0.N: Trace Attempt  4	[0.00 s]
 0.0.N: Requesting engine job to terminate
-0.0.B: Requesting engine job to terminate
-0.0.AM: Requesting engine job to terminate
 0.0.Hp: Requesting engine job to terminate
+INFO (IPF144): 0: Initiating shutdown of proof [0.18 s]
+0.0.N: A trace with 4 cycles was found. [0.00 s]
+INFO (IPF055): 0.0.N: A counterexample (cex) with 4 cycles was found for the property "bridge.i_bridge_env_safety.a_sample_prdata_only_on_pready" in 0.00 s.
+INFO (IPF047): 0.0.N: The cover property "bridge.i_bridge_env_safety.a_sample_prdata_only_on_pready:precondition1" was covered in 3 cycles in 0.00 s by the incidental trace "bridge.i_bridge_env_safety.a_sample_prdata_only_on_pready".
+0.0.N: Stopped processing property "bridge.i_bridge_env_safety.a_sample_prdata_only_on_pready"	[0.02 s].
+0.0.Hp: Interrupted (multi)
+0.0.Hp: All properties determined. [0.14 s]
+0.0.N: All properties determined. [0.01 s]
+0.0.Ht: Proofgrid shell started at 1000185@cadpc04(local) jg_1000018_cadpc04_1
 0.0.Ht: Requesting engine job to terminate
-0.0.Bm: Requesting engine job to terminate
-0.0.Mpcustom4: Requesting engine job to terminate
-0.0.L: Requesting engine job to terminate
-INFO (IPF144): 0: Initiating shutdown of proof [5.10 s]
-0.0.Hp: A proof was found: No trace exists. [5.09 s]
-INFO (IPF057): 0.0.Hp: The property "bridge.i_checker.a_l_buffered_read_drains" was proven in 5.09 s.
-0.0.Hp: All properties determined. [5.09 s]
-0.0.Ht: Interrupted (multi)
-0.0.Ht: Trace Attempt 187	[4.63 s]
-0.0.Ht: All properties determined. [4.66 s]
-0.0.B: Trace Attempt 78	[1.16 s]
-0.0.B: Stopped processing property "bridge.i_checker.a_l_buffered_read_drains"	[1.20 s].
-0.0.B: All properties determined. [1.20 s]
-0.0.B: Exited with Success (@ 5.13 s)
+0.0.Ht: Preventing job from starting because proof is shutting down.
+0.0.Ht: Requesting engine job to terminate
+0.0.Ht: Interrupted. [0.00 s]
+0.0.Ht: Exited with Success (@ 0.20 s)
 0: ProofGrid usable level: 0
-0.0.AM: Trace Attempt 82	[1.11 s]
-0.0.AM: Stopped processing property "bridge.i_checker.a_l_buffered_read_drains"	[1.17 s].
-0.0.AM: All properties determined. [1.18 s]
-0.0.N: Trace Attempt 68	[1.23 s]
-0.0.N: Stopped processing property "bridge.i_checker.a_l_buffered_read_drains"	[1.23 s].
-0.0.N: All properties determined. [1.23 s]
-0.0.Mpcustom4: Trace Attempt 51	[4.44 s]
-0.0.Mpcustom4: All properties determined. [4.72 s]
-0.0.N: Exited with Success (@ 5.16 s)
-0.0.AM: Exited with Success (@ 5.16 s)
-0.0.Mpcustom4: Exited with Success (@ 5.18 s)
-0.0.Bm: Trace Attempt 187	[4.65 s]
-0.0.Bm: All properties determined. [4.74 s]
-0.0.Bm: Exited with Success (@ 5.20 s)
-0.0.L: Trace Attempt 94	[4.56 s]
-0.0.L: All properties determined. [4.75 s]
-0.0.L: Exited with Success (@ 5.20 s)
-0.0.Ht: Exited with Success (@ 5.23 s)
-0.0.Hp: Exited with Success (@ 5.23 s)
+0.0.Mpcustom4: Proofgrid shell started at 1000187@cadpc04(local) jg_1000018_cadpc04_1
+0.0.Mpcustom4: Requesting engine job to terminate
+0.0.N: Exited with Success (@ 0.21 s)
+0.0.Hp: Exited with Success (@ 0.21 s)
+0.0.Mpcustom4: Preventing job from starting because proof is shutting down.
+0.0.Mpcustom4: Requesting engine job to terminate
+0.0.Mpcustom4: Interrupted. [0.00 s]
+0.0.Bm: Proofgrid shell started at 1000186@cadpc04(local) jg_1000018_cadpc04_1
+0.0.Bm: Requesting engine job to terminate
+0.0.Mpcustom4: Exited with Success (@ 0.23 s)
+0.0.L: Proofgrid shell started at 1000203@cadpc04(local) jg_1000018_cadpc04_1
+0.0.L: Requesting engine job to terminate
+0.0.Bm: Preventing job from starting because proof is shutting down.
+0.0.Bm: Requesting engine job to terminate
+0.0.Bm: Interrupted. [0.00 s]
+0.0.L: Preventing job from starting because proof is shutting down.
+0.0.L: Requesting engine job to terminate
+0.0.Bm: Exited with Success (@ 0.23 s)
+0.0.L: Interrupted. [0.00 s]
+0.0.AM: Proofgrid shell started at 1000214@cadpc04(local) jg_1000018_cadpc04_1
+0.0.AM: Requesting engine job to terminate
+0.0.Oh: Proofgrid shell started at 1000197@cadpc04(local) jg_1000018_cadpc04_1
+0.0.Oh: Requesting engine job to terminate
+0.0.L: Exited with Success (@ 0.24 s)
+0.0.Oh: Preventing job from starting because proof is shutting down.
+0.0.Oh: Requesting engine job to terminate
+0.0.Oh: Interrupted. [0.00 s]
+0.0.AM: Preventing job from starting because proof is shutting down.
+0.0.AM: Requesting engine job to terminate
+0.0.AM: Interrupted. [0.00 s]
+0.0.Oh: Exited with Success (@ 0.24 s)
+0.0.AM: Exited with Success (@ 0.24 s)
+0.0.B: Proofgrid shell started at 1000213@cadpc04(local) jg_1000018_cadpc04_1
+0.0.B: Requesting engine job to terminate
+0.0.B: Preventing job from starting because proof is shutting down.
+0.0.B: Requesting engine job to terminate
+0.0.B: Interrupted. [0.00 s]
+0.0.B: Exited with Success (@ 0.26 s)
 0: --------------------------------------------------------------
-ProofGrid Summary (utilization 92.07 %)
+ProofGrid Summary (utilization 16.18 %)
 --------------------------------------------------------------
      engines started                               :     9
      engine jobs started                           :     9
@@ -554,25 +392,25 @@ ProofGrid Summary (utilization 92.07 %)
     ------------------------------------------------------
     Engine  Pending     Running        Dead    Utilization
     ------------------------------------------------------
-      N        0.15        5.08        0.00       97.21 %
-     Hp        0.12        5.09        0.00       97.63 %
-     Ht        0.44        4.65        0.00       91.33 %
-     Bm        0.44        4.65        0.00       91.41 %
-    Mpcustom4        0.44        4.65        0.00       91.45 %
-     Oh        0.43        0.11        0.00       20.70 %
-      L        0.43        4.65        0.00       91.56 %
-      B        0.43        4.65        0.00       91.61 %
-     AM        0.42        4.65        0.00       91.69 %
-    all        0.37        4.25        0.00       92.07 %
+      N        0.18        0.14        0.00       43.32 %
+     Hp        0.16        0.13        0.00       44.35 %
+     Ht        0.19        0.00        0.00        0.00 %
+     Bm        0.20        0.00        0.00        0.00 %
+    Mpcustom4        0.16        0.00        0.00        0.00 %
+     Oh        0.15        0.00        0.00        0.00 %
+      L        0.13        0.00        0.00        0.00 %
+      B        0.11        0.00        0.00        0.00 %
+     AM        0.10        0.00        0.00        0.00 %
+    all        0.15        0.03        0.00       16.18 %
 
     Total time in state (seconds)
     -----------------------------------------
             Pending     Running        Dead  
     -----------------------------------------
-               3.29       38.21        0.00
+               1.38        0.27        0.00
 
-    Data read    : 469.78 kiB
-    Data written : 33.65 kiB
+    Data read    : 36.39 kiB
+    Data written : 1.30 kiB
 
 0: All pending notifications were processed.
 INFO (IPF059): 0: Completed proof on task: "<embedded>"
@@ -580,21 +418,21 @@ INFO (IPF059): 0: Completed proof on task: "<embedded>"
 ==============================================================
 SUMMARY
 ==============================================================
-           Properties Considered              : 31
-                 assertions                   : 13
-                  - proven                    : 7 (53.8462%)
+           Properties Considered              : 10
+                 assertions                   : 5
+                  - proven                    : 3 (60%)
                   - bounded_proven (user)     : 0 (0%)
                   - bounded_proven (auto)     : 0 (0%)
                   - marked_proven             : 0 (0%)
-                  - cex                       : 6 (46.1538%)
+                  - cex                       : 2 (40%)
                   - ar_cex                    : 0 (0%)
                   - undetermined              : 0 (0%)
                   - unknown                   : 0 (0%)
                   - error                     : 0 (0%)
-                 covers                       : 18
-                  - unreachable               : 2 (11.1111%)
+                 covers                       : 5
+                  - unreachable               : 0 (0%)
                   - bounded_unreachable (user): 0 (0%)
-                  - covered                   : 16 (88.8889%)
+                  - covered                   : 5 (100%)
                   - ar_covered                : 0 (0%)
                   - undetermined              : 0 (0%)
                   - unknown                   : 0 (0%)
@@ -608,9 +446,9 @@ determined
     Jasper Verification Results
 ==============================================================
     2024.06p002 64 bits for Linux64 3.10.0-1160.21.1.el7.x86_64
-    Host Name: cadpc03.ee.columbia.edu
+    Host Name: cadpc04.ee.columbia.edu
     User Name: vg2651
-    Printed on: Friday, Dec 5, 2025 06:46:39 PM EST
+    Printed on: Friday, Dec12, 2025 03:37:08 PM EST
     Working Directory: /homes/user/stud/fall25/vg2651/axi2apb/FPV
 
 
@@ -618,42 +456,21 @@ determined
 RESULTS
 ==============================================================
 
---------------------------------------------------------------------------------------------------------------------------
-       Name                                                              |    Result    |  Engine  |  Bound  |  Time    
---------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------
+       Name                                                                        |    Result    |  Engine  |  Bound  |  Time    
+------------------------------------------------------------------------------------------------------------------------------------
 
----[ <embedded> ]---------------------------------------------------------------------------------------------------------
-[1]   bridge.i_checker._assume_4:precondition1                                covered         N             2    0.381 s      
-[2]   bridge.i_checker._assume_5:precondition1                                covered         N             2    0.004 s      
-[3]   bridge.i_checker._assume_6:precondition1                                covered         N             2    0.381 s      
-[4]   bridge.i_checker.a_no_simul_rw_same_addr                                proven          Hp     Infinite    0.011 s      
-[5]   bridge.i_checker.a_pen_without_psel                                     proven          Hp     Infinite    0.012 s      
-[6]   bridge.i_checker.a_p_pwrite_pwd_stable                                  cex             N             7    0.011 s      
-[7]   bridge.i_checker.a_p_pwrite_pwd_stable:precondition1                    covered         N         2 - 6    0.011 s      
-[8]   bridge.i_checker.a_sample_prdata_only_on_pready                         cex             N             4    0.016 s      
-[9]   bridge.i_checker.a_sample_prdata_only_on_pready:precondition1           covered         N         2 - 3    0.016 s      
-[10]  bridge.i_checker.a_fsm_valid_state                                      proven          Hp     Infinite    0.026 s      
-[11]  bridge.i_checker.a_l_read_complete_bounded                              cex             Bm          103    2.067 s      
-[12]  bridge.i_checker.a_l_read_complete_bounded:precondition1                covered         N             2    0.381 s      
-[13]  bridge.i_checker.a_l_write_resp_bounded                                 cex             Bm          103    2.328 s      
-[14]  bridge.i_checker.a_l_write_resp_bounded:precondition1                   covered         N             2    0.004 s      
-[15]  bridge.i_checker.a_l_apb_transfer_bounded                               proven          Oh     Infinite    0.001 s      
-[16]  bridge.i_checker.a_l_apb_transfer_bounded:precondition1                 covered         N         2 - 3    0.011 s      
-[17]  bridge.i_checker.a_l_fsm_returns_idle                                   cex             Bm          103    2.067 s      
-[18]  bridge.i_checker.a_l_fsm_returns_idle:precondition1                     covered         N             2    0.381 s      
-[19]  bridge.i_checker.a_l_ack_request_from_idle                              proven          Hp     Infinite    1.047 s      
-[20]  bridge.i_checker.a_l_ack_request_from_idle:precondition1                covered         Hp            1    0.316 s      
-[21]  bridge.i_checker.a_l_ack_aw_from_idle                                   proven          Hp     Infinite    1.048 s      
-[22]  bridge.i_checker.a_l_ack_aw_from_idle:precondition1                     covered         Hp            1    0.353 s      
-[23]  bridge.i_checker.a_l_burst_len_drains                                   cex             Bm          103    2.067 s      
-[24]  bridge.i_checker.a_l_burst_len_drains:precondition1                     covered         N             2    0.381 s      
-[25]  bridge.i_checker.a_l_buffered_read_drains                               proven          Hp     Infinite    5.092 s      
-[26]  bridge.i_checker.a_l_buffered_read_drains:precondition1                 unreachable     Mpcustom4  Infinite  0.200 s    
-[27]  bridge.i_checker._cover_20                                              covered         N             2    0.381 s      
-[28]  bridge.i_checker._cover_21                                              covered         N             2    0.004 s      
-[29]  bridge.i_checker._cover_22                                              unreachable     Mpcustom4  Infinite  0.200 s    
-[30]  bridge.i_checker._cover_23                                              covered         N         2 - 5    0.011 s      
-[31]  bridge.i_checker._cover_24                                              covered         N             2    0.381 s      
+---[ <embedded> ]-------------------------------------------------------------------------------------------------------------------
+[1]   bridge.i_bridge_env_safety._assume_4:precondition1                                covered         N             2    0.225 s      
+[2]   bridge.i_bridge_env_safety._assume_5:precondition1                                covered         N             2    0.000 s      
+[3]   bridge.i_bridge_env_safety._assume_6:precondition1                                covered         N             2    0.225 s      
+[4]   bridge.i_bridge_env_safety.a_no_simul_rw_same_addr                                proven          N      Infinite    0.000 s      
+[5]   bridge.i_bridge_env_safety.a_pen_without_psel                                     proven          N      Infinite    0.000 s      
+[6]   bridge.i_bridge_env_safety.a_p_pwrite_pwd_stable                                  cex             N             7    0.001 s      
+[7]   bridge.i_bridge_env_safety.a_p_pwrite_pwd_stable:precondition1                    covered         N         2 - 6    0.001 s      
+[8]   bridge.i_bridge_env_safety.a_sample_prdata_only_on_pready                         cex             N             4    0.001 s      
+[9]   bridge.i_bridge_env_safety.a_sample_prdata_only_on_pready:precondition1           covered         N             3    0.001 s      
+[10]  bridge.i_bridge_env_safety.a_fsm_valid_state                                      proven          Hp     Infinite    0.253 s      
 
 ==============================================================
 ASSUMPTIONS
@@ -662,14 +479,17 @@ ASSUMPTIONS
 -------------------------------------------------------------------------------
        Name    |  Expression  |  Location     |  Status      |  Dependencies                  
 -------------------------------------------------------------------------------
-[1]   <embedded>::bridge.i_checker._assume_1  i_checker._assume_1  N/A temporary              
-[2]   <embedded>::bridge.i_checker._assume_2  i_checker._assume_2  N/A temporary              
-[3]   <embedded>::bridge.i_checker._assume_3  i_checker._assume_3  N/A temporary              
-[4]   <embedded>::bridge.i_checker._assume_4  i_checker._assume_4  N/A temporary              
-[5]   <embedded>::bridge.i_checker._assume_5  i_checker._assume_5  N/A temporary              
-[6]   <embedded>::bridge.i_checker._assume_6  i_checker._assume_6  N/A temporary              
+[1]   <embedded>::bridge.i_bridge_env_safety._assume_1  i_bridge_env_safety._assume_1  N/A temporary
+[2]   <embedded>::bridge.i_bridge_env_safety._assume_2  i_bridge_env_safety._assume_2  N/A temporary
+[3]   <embedded>::bridge.i_bridge_env_safety._assume_3  i_bridge_env_safety._assume_3  N/A temporary
+[4]   <embedded>::bridge.i_bridge_env_safety._assume_4  i_bridge_env_safety._assume_4  N/A temporary
+[5]   <embedded>::bridge.i_bridge_env_safety._assume_5  i_bridge_env_safety._assume_5  N/A temporary
+[6]   <embedded>::bridge.i_bridge_env_safety._assume_6  i_bridge_env_safety._assume_6  N/A temporary
 [<embedded>] % 
-[<embedded>] % visualize -violation -property <embedded>::bridge.i_checker.a_l_burst_len_drains -new_window
-INFO (IVS015): Setting Visualize task to "<embedded>".
-INFO (IVS008): Expanding analysis region to enable visualization of "<embedded>::bridge.i_checker.a_l_burst_len_drains".
-cex
+INFO (IPL005): Received request to exit from the console.
+INFO (IPL014): Waiting for the Tcl-thread to exit.
+INFO: Waiting for proof threads to stop...
+INFO: Proof threads stopped.
+INFO (IPL018): The peak resident set memory use for this session was 0.483 GB.
+INFO (IPL015): The Tcl-thread exited with status 0.
+INFO (IPL016): Exiting the analysis session with status 0.

@@ -3,9 +3,18 @@
 ### Design: AXI-APB Bridge
     RTL: designs/bridge.v
     Assertions: designs/bridge.sva
-    Bindings: bindings.sva [Error-free]
+    Bindings: designs/bindings.sva
+    FPV tcl script: FPV/FPV_axiapb.tcl
 
 ### To run Cadence JasperGold
-    Run the executable with the command
-        ./run_jg.sh
-    Runs the FPV_axiapb.tcl file which launches JasperGold
+#### To check all properties
+    ./run_jg.sh
+
+#### To check safety properties
+    ./run_jg.sh safety
+
+#### To check liveness properties
+    ./run_jg.sh liveness
+
+#### To check misc properties
+    ./run_jg.sh misc

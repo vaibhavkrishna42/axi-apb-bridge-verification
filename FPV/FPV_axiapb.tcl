@@ -9,15 +9,48 @@ set ROOT_PATH ../designs
 set RTL_PATH ${ROOT_PATH}
 set SV_PATH ${ROOT_PATH}
 
+# Mode selection via environment variable JG_MODE
+#   all|safety|liveness|misc
+set mode "all"
+if {[info exists ::env(JG_MODE)]} {
+  set mode $::env(JG_MODE)
+}
+
+set SVA_FILES {}
+switch -- $mode {
+  "safety" {
+    set SVA_FILES [list \
+      ${SV_PATH}/bridge_props_pkg.sv \
+      ${SV_PATH}/bridge_env_safety.sva \
+      ${SV_PATH}/bindings_safety.sva]
+  }
+  "liveness" {
+    set SVA_FILES [list \
+      ${SV_PATH}/bridge_props_pkg.sv \
+      ${SV_PATH}/bridge_liveness.sva \
+      ${SV_PATH}/bindings_liveness.sva]
+  }
+  "misc" {
+    set SVA_FILES [list \
+      ${SV_PATH}/bridge_props_pkg.sv \
+      ${SV_PATH}/bridge_misc.sva \
+      ${SV_PATH}/bindings_misc.sva]
+  }
+  default {
+    set SVA_FILES [list \
+      ${SV_PATH}/bridge_props_pkg.sv \
+      ${SV_PATH}/bridge_env_safety.sva \
+      ${SV_PATH}/bridge_liveness.sva \
+      ${SV_PATH}/bridge_misc.sva \
+      ${SV_PATH}/bindings.sva]
+  }
+}
+
 analyze -sv \
   ${RTL_PATH}/bridge.v
 
 analyze -sva \
-  ${SV_PATH}/bridge_props_pkg.sv \
-  ${SV_PATH}/bridge_env_safety.sva \
-  ${SV_PATH}/bridge_liveness.sva \
-  ${SV_PATH}/bridge_misc.sva \
-  ${SV_PATH}/bindings.sva
+  {*}$SVA_FILES
 
 # Elaborate design and properties
 elaborate -top bridge

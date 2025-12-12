@@ -1,0 +1,239 @@
+// ---------------------------
+// Environment assumptions
+// ---------------------------
+module bridge_checker (
+  input clk, res_n,
+  input [3:0] arlen, awlen,
+  input arvalid, awvalid, arready, awready,
+  input [4:0] araddr, awaddr,
+  input rready, bready,
+  input PSEL1, PSEL2, PSEL3, PSEL4, PREADY, PENABLE, PWRITE,
+  input [15:0] PWDATA, PRDATA,
+  input [3:0] current_state, next_state,
+  input rvalid, rlast, bvalid,
+  input [3:0] lenM, lenS
+);
+
+parameter IDLE        = 4'b0000,
+          SETUP_M     = 4'b0001,
+          SETUP_S     = 4'b0010,
+          ACCESS_S    = 4'b0011,
+          PREACCESS_M = 4'b0100,
+          ACCESS_M    = 4'b0101,
+          WSETUP_M    = 4'b0110,
+          WPREACCESS_M= 4'b0111,
+          WACCESS_M   = 4'b1000,
+          WTERMINATE  = 4'b1001,
+          WSETUP_S    = 4'b1010,
+          WACCESS_S   = 4'b1011;
+
+// These constrain the inputs to make formal proofs meaningful.
+// Use `disable iff (!res_n)` to stop checking during reset.
+
+//
+// Basic constraints on AXI lengths/burst (bounded)
+// (arlen/awlen are 4-bit already; explicitly assume <= 15 for clarity)
+assume property (@(posedge clk) disable iff (!res_n) (arlen <= 4'd15));
+assume property (@(posedge clk) disable iff (!res_n) (awlen <= 4'd15));
+
+//
+// Do not assert AR and AW acceptance simultaneously at the same cycle
+// (if this is an environmental requirement in your protocol)
+assume property (@(posedge clk) disable iff (!res_n)
+  !(arvalid && awvalid)
+);
+
+//
+// Assume AXI master will eventually accept read/write responses
+// within a bounded number of cycles (bready/rready will be asserted).
+// (Bound chosen: 100 cycles overall; adjust as needed)
+assume property (@(posedge clk) disable iff (!res_n)
+  (arvalid && arready) |=> ##[0:100] rready
+);
+
+assume property (@(posedge clk) disable iff (!res_n)
+  (awvalid && awready) |=> ##[0:100] bready
+);
+
+//
+// APB peripheral will assert PREADY within 20 cycles of the APB access setup
+assume property (@(posedge clk) disable iff (!res_n)
+  (PSEL1 || PSEL2 || PSEL3 || PSEL4) |=> ##[0:20] PREADY
+);
+
+//
+// // Inputs do not remain illegally stuck for extremely long without handshake
+// // (prevents modelling pathological env). These are soft constraints to help proofs.
+// assume property (@(posedge clk) disable iff (!res_n)
+//   !(arvalid && !arready && ##[100] arvalid)
+// );
+// assume property (@(posedge clk) disable iff (!res_n)
+//   !(awvalid && !awready && ##[100] awvalid)
+// );
+
+
+
+// ---------------------------
+// Safety properties (assert = "must never happen")
+// ---------------------------
+
+//
+// 1) No simultaneous read and write accepted at same address
+//    (if the design should never accept AR and AW for same address in same cycle)
+property p_no_simul_rw_same_addr;
+  @(posedge clk) disable iff (!res_n)
+    not ( (arvalid && arready) && (awvalid && awready) && (araddr == awaddr) );
+endproperty
+a_no_simul_rw_same_addr: assert property (p_no_simul_rw_same_addr);
+
+//
+// 2) PENABLE must not be asserted without a corresponding PSELx
+property p_pen_without_psel;
+  @(posedge clk) disable iff (!res_n)
+    !(PENABLE && !(PSEL1 || PSEL2 || PSEL3 || PSEL4));
+endproperty
+a_pen_without_psel: assert property (p_pen_without_psel);
+
+//
+// 3) PWRITE and PWDATA should remain stable once APB write phase begins
+//    We assert that when a write APB access is active (PSEL && PWRITE) and
+//    PREADY is not yet seen, PWRITE and PWDATA do not change until PREADY.
+//    This is bounded to 20 cycles (APB response bound).
+property p_pwrite_pwd_stable;
+  @(posedge clk) disable iff (!res_n)
+    // whenever an APB write setup occurs (PSEL active & PWRITE true)
+    ( (PSEL1 || PSEL2 || PSEL3 || PSEL4) && PWRITE ) |=>
+      ( (PWRITE && $stable(PWDATA)) throughout (!PREADY) ) ;
+endproperty
+a_p_pwrite_pwd_stable: assert property (p_pwrite_pwd_stable);
+
+//
+// Note: above uses `throughout` which requires the RHS to be a sequence.
+// If your tool/version flags `throughout` usage, replace with an equivalent
+// encoding (or use a small monitor register to check stability).
+//
+
+//
+// 4) PRDATA is only sampled when PREADY is asserted
+//    We assert that read sampling (SETUP_S -> sampling PRDATA into buffer) must
+//    only happen when PREADY is true. Practically we assert: whenever current_state
+//    is SETUP_S and you intend to capture, PREADY must be asserted on that cycle.
+property p_sample_prdata_only_on_pready;
+  @(posedge clk) disable iff (!res_n)
+    (current_state == SETUP_S) |=> PREADY;
+endproperty
+a_sample_prdata_only_on_pready: assert property (p_sample_prdata_only_on_pready);
+
+//
+// 5) No invalid FSM transitions
+//    Assert next_state is one of the declared states (defensive)
+//    (This is a sanity check: next_state should always be a valid encoding)
+property p_fsm_valid_state;
+  @(posedge clk) disable iff (!res_n)
+    ( next_state == IDLE    ||
+      next_state == SETUP_M ||
+      next_state == SETUP_S ||
+      next_state == ACCESS_S||
+      next_state == PREACCESS_M||
+      next_state == ACCESS_M||
+      next_state == WSETUP_M||
+      next_state == WPREACCESS_M||
+      next_state == WACCESS_M||
+      next_state == WTERMINATE||
+      next_state == WSETUP_S||
+      next_state == WACCESS_S );
+endproperty
+a_fsm_valid_state: assert property (p_fsm_valid_state);
+
+
+// ---------------------------
+// Bounded liveness properties (assert eventually within a bound)
+// ---------------------------
+// We use bounded eventually (`|=> ##[0:N]`) so JasperGold can converge.
+// Bounds used per your plan: burst <= 16 beats (arlen/awlen max 15),
+// APB PREADY within 20 cycles, total transaction within 100 cycles.
+// Adjust bounds as needed for stronger/weaker guarantees.
+//
+
+//
+// L1: Every accepted AXI read (ARVALID && ARREADY) eventually completes
+//     with RVALID && RREADY && RLAST within 100 cycles.
+property l_read_complete_bounded;
+  @(posedge clk) disable iff (!res_n)
+    (arvalid && arready) |=> ##[0:100] (rvalid && rready && rlast);
+endproperty
+a_l_read_complete_bounded: assert property (l_read_complete_bounded);
+
+//
+// L2: Every accepted AXI write address (AWVALID && AWREADY) eventually sees
+//     a write response (BVALID && BREADY) within 100 cycles.
+property l_write_resp_bounded;
+  @(posedge clk) disable iff (!res_n)
+    (awvalid && awready) |=> ##[0:100] (bvalid && bready);
+endproperty
+a_l_write_resp_bounded: assert property (l_write_resp_bounded);
+
+//
+// L3: APB transfer will complete when PSEL asserted (PREADY within 20 cycles)
+//     This duplicates the environment assumption but also asserts forward progress.
+property l_apb_transfer_bounded;
+  @(posedge clk) disable iff (!res_n)
+    ((PSEL1 || PSEL2 || PSEL3 || PSEL4) && PENABLE) |=> ##[0:20] PREADY;
+endproperty
+a_l_apb_transfer_bounded: assert property (l_apb_transfer_bounded);
+
+//
+// L4: FSM eventually returns to IDLE after completing any transaction within 100 cycles
+property l_fsm_returns_idle;
+  @(posedge clk) disable iff (!res_n)
+    (current_state != IDLE) |=> ##[0:100] (current_state == IDLE);
+endproperty
+a_l_fsm_returns_idle: assert property (l_fsm_returns_idle);
+
+//
+// L5: If a valid request is seen in IDLE, the bridge will assert ARREADY/AWREADY
+//     and begin processing within 5 cycles (response to handshake).
+property l_ack_request_from_idle;
+  @(posedge clk) disable iff (!res_n)
+    (current_state == IDLE && arvalid) |=> ##[0:5] arready;
+endproperty
+a_l_ack_request_from_idle: assert property (l_ack_request_from_idle);
+
+property l_ack_aw_from_idle;
+  @(posedge clk) disable iff (!res_n)
+    (current_state == IDLE && awvalid) |=> ##[0:5] awready;
+endproperty
+a_l_ack_aw_from_idle: assert property (l_ack_aw_from_idle);
+
+//
+// L6: For burst transactions, all beats complete (lenM and lenS eventually go to 0).
+//     We assert that after acceptance of a burst, the length counters reach 0 within 100 cycles.
+property l_burst_len_drains;
+  @(posedge clk) disable iff (!res_n)
+    ((arvalid && arready) || (awvalid && awready)) |=> ##[0:100] ((lenM == 0) && (lenS == 0));
+endproperty
+a_l_burst_len_drains: assert property (l_burst_len_drains);
+
+//
+// L7: Buffered read data is eventually transferred out via RVALID/RREADY handshakes
+property l_buffered_read_drains;
+  @(posedge clk) disable iff (!res_n)
+    (current_state == ACCESS_M) |=> ##[0:100] (rvalid && rready);
+endproperty
+a_l_buffered_read_drains: assert property (l_buffered_read_drains);
+
+
+// ---------------------------
+// Helpful covers to measure reachability
+// ---------------------------
+cover property (@(posedge clk) (arvalid && arready));           // AR accepted
+cover property (@(posedge clk) (awvalid && awready));           // AW accepted
+cover property (@(posedge clk) (rvalid && rready && rlast));    // Read completion observed
+cover property (@(posedge clk) (bvalid && bready));             // Write response observed
+cover property (@(posedge clk) (PSEL1 || PSEL2 || PSEL3 || PSEL4)); // APB select exercised
+
+//////////////////////////////////////////////////////////////////////////////
+// End of verification block
+//////////////////////////////////////////////////////////////////////////////
+
+endmodule

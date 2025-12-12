@@ -1,0 +1,12 @@
+bind bridge bridge_checker i_checker (
+  .clk(clk), .res_n(res_n),
+  .arlen(arlen), .awlen(awlen),
+  .arvalid(arvalid), .awvalid(awvalid), .arready(arready), .awready(awready),
+  .araddr(araddr), .awaddr(awaddr),
+  .rready(rready), .bready(bready),
+  .PSEL1(PSEL1), .PSEL2(PSEL2), .PSEL3(PSEL3), .PSEL4(PSEL4), .PREADY(PREADY), .PENABLE(PENABLE), .PWRITE(PWRITE),
+  .PWDATA(PWDATA), .PRDATA(PRDATA),
+  .current_state(current_state), .next_state(next_state),
+  .rvalid(rvalid), .rlast(rlast), .bvalid(bvalid),
+  .lenM(lenM), .lenS(lenS)
+);

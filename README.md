@@ -1,9 +1,9 @@
-## Formal Verification Course Project
+## AXI-APB Bridge Verification
 
-### Design: AXI-APB Bridge
+### File paths
     RTL: designs/bridge.v
-    Assertions: designs/bridge.sva
-    Bindings: designs/bindings.sva
+    Assertions: designs/bridge*.sva
+    Bindings: designs/bindings*.sva
     FPV tcl script: FPV/FPV_axiapb.tcl
 
 ### To run Cadence JasperGold

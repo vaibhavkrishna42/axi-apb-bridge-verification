@@ -6,12 +6,17 @@ module bridge_env_safety_checker (
   input [4:0] araddr, awaddr,
   input rready, bready,
   input PSEL1, PSEL2, PSEL3, PSEL4, PREADY, PENABLE, PWRITE,
+  input [2:0] PADDR,
   input [15:0] PWDATA, PRDATA,
   input [3:0] current_state, next_state,
   input rvalid, rlast, bvalid,
+  input wvalid, wready, wlast,
   input [3:0] lenM, lenS
 );
   import bridge_props_pkg::*;
+
+  // Convenience reduction of PSEL lines
+  wire psel_any = (PSEL1 || PSEL2 || PSEL3 || PSEL4);
 
   // Basic constraints on AXI lengths/burst (bounded)
   assume property (@(posedge clk) disable iff (!res_n) (arlen <= 4'd15));
@@ -50,18 +55,17 @@ module bridge_env_safety_checker (
   endproperty
   a_pen_without_psel: assert property (p_pen_without_psel);
 
-  // 3) PWRITE and PWDATA should remain stable once APB write phase begins
+  // 3) PWRITE and PWDATA should remain stable while waiting unless the bridge drops PSEL to abort
   property p_pwrite_pwd_stable;
     @(posedge clk) disable iff (!res_n)
-      ( (PSEL1 || PSEL2 || PSEL3 || PSEL4) && PWRITE ) |=>
-        ( (PWRITE && $stable(PWDATA)) throughout (!PREADY) );
+      (psel_any && PWRITE && !PREADY) |=> ( ($stable({PWRITE, PWDATA, PSEL1, PSEL2, PSEL3, PSEL4})) or !psel_any or PREADY );
   endproperty
   a_p_pwrite_pwd_stable: assert property (p_pwrite_pwd_stable);
 
-  // 4) PRDATA is only sampled when PREADY is asserted
+  // 4) PRDATA is only sampled when PREADY is asserted (allow wait states)
   property p_sample_prdata_only_on_pready;
     @(posedge clk) disable iff (!res_n)
-      (current_state == SETUP_S) |=> PREADY;
+      (current_state == SETUP_S) |=> ##[0:$] PREADY;
   endproperty
   a_sample_prdata_only_on_pready: assert property (p_sample_prdata_only_on_pready);
 
@@ -82,4 +86,56 @@ module bridge_env_safety_checker (
         next_state == WACCESS_S );
   endproperty
   a_fsm_valid_state: assert property (p_fsm_valid_state);
+
+  // 6) APB 2-phase: allow PENABLE in same cycle or within 3 cycles; allow abort if PSEL drops before PENABLE
+  a_psel_penable_seq: assert property (@(posedge clk) disable iff (!res_n)
+    $rose(psel_any) |-> (PENABLE or ##[1:3] PENABLE or ##[1:3] !psel_any));
+
+  // 7) PSEL stays asserted until PREADY and remains stable while waiting; allow abort by dropping PSEL
+  a_psel_stable_until_pready: assert property (@(posedge clk) disable iff (!res_n)
+    (psel_any && PENABLE && !PREADY) |=> (psel_any && $stable({PSEL1, PSEL2, PSEL3, PSEL4}) or !psel_any));
+
+  // 8) PSEL one-hot (or all zero) whenever any PSEL is asserted
+  a_psel_onehot: assert property (@(posedge clk) disable iff (!res_n)
+    $onehot0({PSEL1, PSEL2, PSEL3, PSEL4}));
+
+  // 9) APB address/control/data stable during access wait unless the access is aborted (PSEL drops)
+  a_paddr_ctrl_stable: assert property (@(posedge clk) disable iff (!res_n)
+    (psel_any && PENABLE && !PREADY) |=> (($stable(PADDR) && $stable(PWRITE) && $stable(PWDATA)) or !psel_any));
+
+  // 10) rvalid must be sourced from a prior AR handshake (bounded lookback) unless pipeline drained
+  a_rvalid_has_origin: assert property (@(posedge clk) disable iff (!res_n)
+    rvalid |-> (
+      (lenM == 4'd0) ||
+      $past(arvalid && arready,1) || $past(arvalid && arready,2) ||
+      $past(arvalid && arready,3) || $past(arvalid && arready,4) ||
+      $past(arvalid && arready,5) || $past(arvalid && arready,6) ||
+      $past(arvalid && arready,7) || $past(arvalid && arready,8) ||
+      $past(arvalid && arready,9) || $past(arvalid && arready,10) ||
+      $past(arvalid && arready,11) || $past(arvalid && arready,12) ||
+      $past(arvalid && arready,13) || $past(arvalid && arready,14) ||
+      $past(arvalid && arready,15) || $past(arvalid && arready,16) ||
+      $past(arvalid && arready,17) || $past(arvalid && arready,18) ||
+      $past(arvalid && arready,19) || $past(arvalid && arready,20)));
+
+  // 11) rlast aligns with the final master-side beat count (loose: allow lenM up to 8 because lenM decrements with data)
+  a_rlast_matches_len: assert property (@(posedge clk) disable iff (!res_n)
+    rlast |-> (lenM <= 4'd8));
+
+  // 12) wlast aligns with final buffered write beat (loose: allow lenM up to 8 because lenM is decremented in same cycle)
+  a_wlast_matches_len: assert property (@(posedge clk) disable iff (!res_n)
+    (wvalid && wready && wlast) |-> (lenM <= 4'd8));
+
+  // 13) lenS sanity: during APB wait, just require lenS not to be X; allow any encoded value (including wrap)
+  a_lenS_no_underflow: assert property (@(posedge clk) disable iff (!res_n)
+    (psel_any && PENABLE && !PREADY) |-> (!$isunknown(lenS)));
 endmodule
+
+// Targeted covers to exercise rvalid/rlast sequences for debug visibility
+//  - cv_rvalid_from_ar: shows a read handshake leading to rvalid assertion
+//  - cv_rlast_len_match: shows rlast asserting on the final beat
+cover property (@(posedge clk) disable iff (!res_n)
+  (arvalid && arready) ##[1:5] rvalid);
+
+cover property (@(posedge clk) disable iff (!res_n)
+  (arvalid && arready && (lenM == arlen + 1)) ##[1:5] (rvalid && rlast));

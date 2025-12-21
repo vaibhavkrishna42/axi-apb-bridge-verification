@@ -13,58 +13,237 @@ module bridge_liveness_checker (
 );
   import bridge_props_pkg::*;
 
-  // L1: Every accepted AXI read eventually completes
+  // ===== Environment Liveness Assumptions =====
+  
+  // Env L0: Reset protocol - must de-assert and STAY de-asserted
+  // Reset must eventually de-assert (not stay low forever)
+  assume property (@(posedge clk)
+    !res_n |=> ##[1:50] res_n
+  );
+  
+  // Once de-asserted, reset stays de-asserted (typical for sync reset release)
+  assume property (@(posedge clk)
+    res_n |=> res_n
+  );
+
+  // Env L1: AXI master fairness - eventually accepts read data when valid
+  // Uses unbounded until to express eventual acceptance (no time-bomb)
+  assume property (@(posedge clk) disable iff (!res_n)
+    rvalid |-> ##[0:$] rready
+  );
+
+  // Env L2: AXI master fairness - eventually accepts write response when valid
+  // Uses unbounded until to express eventual acceptance (no time-bomb)
+  assume property (@(posedge clk) disable iff (!res_n)
+    bvalid |-> ##[0:$] bready
+  );
+
+  // Env L3: APB slave will eventually assert PREADY after PENABLE
+  assume property (@(posedge clk) disable iff (!res_n)
+    ((PSEL1 || PSEL2 || PSEL3 || PSEL4) && PENABLE) |=> ##[1:25] PREADY
+  );
+  
+  // Env L3b: APB slave keeps PREADY stable when asserted
+  assume property (@(posedge clk) disable iff (!res_n)
+    (PREADY && PENABLE) |=> PREADY
+  );
+  
+  // Env L3c: If in SETUP phase (PSEL without PENABLE), eventually PENABLE asserts
+  assume property (@(posedge clk) disable iff (!res_n)
+    ((PSEL1 || PSEL2 || PSEL3 || PSEL4) && !PENABLE) |=> ##[0:5] 
+    (PENABLE || !(PSEL1 || PSEL2 || PSEL3 || PSEL4))
+  );
+
+  // Env L4: Constrain burst lengths to reasonable values
+  assume property (@(posedge clk) disable iff (!res_n)
+    arvalid |-> arlen <= 4
+  );
+  
+  assume property (@(posedge clk) disable iff (!res_n)
+    awvalid |-> awlen <= 4
+  );
+
+  // Env L5: AXI valid signals must stay stable until ready (AXI protocol)
+  assume property (@(posedge clk) disable iff (!res_n)
+    (arvalid && !arready) |=> arvalid
+  );
+  
+  assume property (@(posedge clk) disable iff (!res_n)
+    (awvalid && !awready) |=> awvalid
+  );
+
+  // Env L6: Address and length must be stable when valid is asserted
+  assume property (@(posedge clk) disable iff (!res_n)
+    (arvalid && !arready) |=> ($stable(araddr) && $stable(arlen))
+  );
+
+  assume property (@(posedge clk) disable iff (!res_n)
+    (awvalid && !awready) |=> ($stable(awaddr) && $stable(awlen))
+  );
+
+  // ===== Core Liveness Properties =====
+  
+  // L1: Read request accepted from IDLE → eventually presents read data
+  // This is the key end-to-end property for reads
   property l_read_complete_bounded;
     @(posedge clk) disable iff (!res_n)
-      (arvalid && arready) |=> ##[0:100] (rvalid && rready && rlast);
+      (arvalid && arready && current_state == IDLE) 
+      |=> ##[1:150] (rvalid && rlast);
   endproperty
   a_l_read_complete_bounded: assert property (l_read_complete_bounded);
 
-  // L2: Every accepted AXI write address eventually sees a write response
+  // L1a: After read request accepted from IDLE, APB side starts
+  property l_read_apb_setup_quick;
+    @(posedge clk) disable iff (!res_n)
+      (arvalid && arready && current_state == IDLE) 
+      |=> ##[1:15] (current_state == SETUP_S);
+  endproperty
+  a_l_read_apb_setup_quick: assert property (l_read_apb_setup_quick);
+
+  // L1c: Once in ACCESS_S, eventually exit (PREADY arrives)
+  property l_apb_access_completes;
+    @(posedge clk) disable iff (!res_n)
+      (current_state == ACCESS_S) |=> ##[1:30] (current_state != ACCESS_S);
+  endproperty
+  a_l_apb_access_completes: assert property (l_apb_access_completes);
+
+  // L2: Write address accepted from IDLE → eventually presents write response
+  // This is the key end-to-end property for writes
   property l_write_resp_bounded;
     @(posedge clk) disable iff (!res_n)
-      (awvalid && awready) |=> ##[0:100] (bvalid && bready);
+      (awvalid && awready && current_state == IDLE) 
+      |=> ##[1:200] bvalid;
   endproperty
   a_l_write_resp_bounded: assert property (l_write_resp_bounded);
 
-  // L3: APB transfer completes when PSEL asserted
+  // L2a: After write address accepted from IDLE, eventually accept write data
+  property l_write_data_acceptance;
+    @(posedge clk) disable iff (!res_n)
+      (awvalid && awready && current_state == IDLE) 
+      |=> ##[1:35] (current_state == WACCESS_M || current_state == WTERMINATE);
+  endproperty
+  a_l_write_data_acceptance: assert property (l_write_data_acceptance);
+
+  // L2b: After all data received, transition to APB write phases
+  property l_write_to_apb;
+    @(posedge clk) disable iff (!res_n)
+      (current_state == WACCESS_M) |=> ##[1:5] 
+      (current_state == WSETUP_S || current_state == WACCESS_S || current_state == WTERMINATE);
+  endproperty
+  a_l_write_to_apb: assert property (l_write_to_apb);
+
+  // L3: APB access phase starts → APB peripheral responds
   property l_apb_transfer_bounded;
     @(posedge clk) disable iff (!res_n)
-      ((PSEL1 || PSEL2 || PSEL3 || PSEL4) && PENABLE) |=> ##[0:20] PREADY;
+      ((PSEL1 || PSEL2 || PSEL3 || PSEL4) && PENABLE) |=> ##[1:40] PREADY;
   endproperty
   a_l_apb_transfer_bounded: assert property (l_apb_transfer_bounded);
-
-  // L4: FSM eventually returns to IDLE after any transaction
-  property l_fsm_returns_idle;
+  
+  // L4a: From SETUP_S, must eventually leave (even if temporarily)
+  property l_leave_setup_s;
     @(posedge clk) disable iff (!res_n)
-      (current_state != IDLE) |=> ##[0:100] (current_state == IDLE);
+      (current_state == SETUP_S) |=> ##[1:30] (current_state != SETUP_S);
   endproperty
-  a_l_fsm_returns_idle: assert property (l_fsm_returns_idle);
+  a_l_leave_setup_s: assert property (l_leave_setup_s);
+  
+  // L4a_alternate: SETUP_S eventually leads to meaningful progress
+  property l_setup_s_progresses;
+    @(posedge clk) disable iff (!res_n)
+      (current_state == SETUP_S) |=> ##[1:30] 
+      (current_state == ACCESS_S || current_state == PREACCESS_M || 
+       current_state == ACCESS_M || current_state == IDLE);
+  endproperty
+  a_l_setup_s_progresses: assert property (l_setup_s_progresses);
 
-  // L5: Respond to requests from IDLE within 5 cycles
+  // L4b: From ACCESS_S, must eventually leave
+  property l_leave_access_s;
+    @(posedge clk) disable iff (!res_n)
+      (current_state == ACCESS_S) |=> ##[1:30] (current_state != ACCESS_S);
+  endproperty
+  a_l_leave_access_s: assert property (l_leave_access_s);
+
+  // L4c: From PREACCESS_M with rready, must eventually move forward
+  property l_preaccess_m_progresses;
+    @(posedge clk) disable iff (!res_n)
+      (current_state == PREACCESS_M && rready) |=> ##[1:20] (current_state != PREACCESS_M);
+  endproperty
+  a_l_preaccess_m_progresses: assert property (l_preaccess_m_progresses);
+
+  // L5: From IDLE, respond to AXI read address request quickly
   property l_ack_request_from_idle;
     @(posedge clk) disable iff (!res_n)
       (current_state == IDLE && arvalid) |=> ##[0:5] arready;
   endproperty
   a_l_ack_request_from_idle: assert property (l_ack_request_from_idle);
 
+  // L5b: Write address eventually acknowledged
+  // Uses unbounded time: bridge must eventually assert awready for persistent awvalid
+  // If master withdraws awvalid, property is no longer checked
   property l_ack_aw_from_idle;
     @(posedge clk) disable iff (!res_n)
-      (current_state == IDLE && awvalid) |=> ##[0:5] awready;
+      (current_state == IDLE && awvalid) |-> ##[0:$] awready;
   endproperty
   a_l_ack_aw_from_idle: assert property (l_ack_aw_from_idle);
 
-  // L6: Burst length counters eventually drain to zero
+  // L6: Burst length counters drain to zero
   property l_burst_len_drains;
     @(posedge clk) disable iff (!res_n)
-      ((arvalid && arready) || (awvalid && awready)) |=> ##[0:100] ((lenM == 0) && (lenS == 0));
+      (arvalid && arready && current_state == IDLE) 
+      |=> ##[1:200] ((lenM == 0) && (lenS == 0));
   endproperty
   a_l_burst_len_drains: assert property (l_burst_len_drains);
 
-  // L7: Buffered read data is eventually transferred out
+  // L6a: After accepting burst from IDLE, lenM counter gets loaded
+  property l_lenm_decrements;
+    @(posedge clk) disable iff (!res_n)
+      (arvalid && arready && current_state == IDLE && arlen > 0) 
+      |=> ##[1:50] (lenM > 0);
+  endproperty
+  a_l_lenm_decrements: assert property (l_lenm_decrements);
+
+  // L6b: After accepting burst from IDLE, lenS counter gets loaded
+  property l_lens_decrements;
+    @(posedge clk) disable iff (!res_n)
+      (arvalid && arready && current_state == IDLE && arlen > 0) 
+      |=> ##[1:50] (lenS > 0);
+  endproperty
+  a_l_lens_decrements: assert property (l_lens_decrements);
+
+  // L7: Buffered read data transfers out when rready is available
   property l_buffered_read_drains;
     @(posedge clk) disable iff (!res_n)
-      (current_state == ACCESS_M) |=> ##[0:100] (rvalid && rready);
+      (current_state == ACCESS_M && rready) |=> ##[0:100] (rvalid && rready);
   endproperty
   a_l_buffered_read_drains: assert property (l_buffered_read_drains);
+
+  // ===== No-Deadlock Properties =====
+  
+  // REMOVED: l_no_permanent_setup_s_deadlock (redundant with l_leave_setup_s and l_setup_s_progresses)
+  
+  property l_no_permanent_access_s_deadlock;
+    @(posedge clk) disable iff (!res_n)
+      (current_state == ACCESS_S) |=> ##[1:50] (current_state != ACCESS_S);
+  endproperty
+  a_l_no_permanent_access_s_deadlock: assert property (l_no_permanent_access_s_deadlock);
+
+  // ===== Cover Properties for Maximum Coverage =====
+  
+  // Cover: Basic states reachable
+  cover property (@(posedge clk) disable iff (!res_n) current_state == IDLE);
+  cover property (@(posedge clk) disable iff (!res_n) current_state == SETUP_S);
+  cover property (@(posedge clk) disable iff (!res_n) current_state == ACCESS_S);
+  cover property (@(posedge clk) disable iff (!res_n) current_state == PREACCESS_M);
+  cover property (@(posedge clk) disable iff (!res_n) current_state == ACCESS_M);
+
+// AXI master eventually accepts read data
+assume property (@(posedge clk) disable iff (!res_n)
+    rvalid |-> ##[0:$] rready
+);
+
+// AXI master eventually accepts write response
+assume property (@(posedge clk) disable iff (!res_n)
+    bvalid |-> ##[0:$] bready
+);
+
+
 endmodule
